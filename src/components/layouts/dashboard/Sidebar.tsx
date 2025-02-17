@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   Drawer,
   List,
@@ -7,8 +8,9 @@ import {
   ListItemIcon,
   ListItemText,
   Tooltip,
+  Divider,
 } from '@mui/material';
-import { Dashboard, MonetizationOn, Group, Warning } from '@mui/icons-material';
+import { Dashboard, MonetizationOn, Group, Warning, AccountCircle, Settings, Assignment, Assessment } from '@mui/icons-material';
 import { useTheme, useMediaQuery } from '@mui/material';
 
 interface SidebarProps {
@@ -18,12 +20,25 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const location = useLocation();
+  const [selectedPath, setSelectedPath] = useState(location.pathname);
+
+  const handleItemClick = (path: string) => {
+    setSelectedPath(path);
+  };
 
   const menuItems = [
-    { text: 'Projects', icon: <Dashboard /> },
-    { text: 'Budgets', icon: <MonetizationOn /> },
-    { text: 'Resources', icon: <Group /> },
-    { text: 'Risk Management', icon: <Warning /> },
+    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Projects', icon: <Assignment />, path: '/projects' },  // Changed icon to Assignment for Projects
+    { text: 'Budgets', icon: <MonetizationOn />, path: '/budgets' },
+    { text: 'Resources', icon: <Group />, path: '/resources' },
+    { text: 'Risk Management', icon: <Warning />, path: '/risk-management' },
+    { text: 'Reports', icon: <Assessment />, path: '/reports' },  // Changed icon to Assessment for Reports
+  ];
+
+  const additionalItems = [
+    { text: 'Account', icon: <AccountCircle />, path: '/account' },
+
   ];
 
   return (
@@ -49,10 +64,57 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
         {menuItems.map((item, index) => (
           <ListItem key={index} disablePadding>
             <Tooltip title={!collapsed ? '' : item.text} placement='right'>
-              <ListItemButton sx={{ py: 2, px: 1.5, '&:hover': { backgroundColor: '#ffe600', color: '#333333' } }}>
-                <ListItemIcon sx={{ color: 'white', minWidth: collapsed ? 'auto' : 56 }}>{item.icon}</ListItemIcon>
-                {!collapsed && <ListItemText primary={item.text} sx={{ color: 'white', fontFamily: 'Roboto, sans-serif' }} />}
-              </ListItemButton>
+              <NavLink
+                to={item.path}
+                style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}
+                onClick={() => handleItemClick(item.path)}
+              >
+                <ListItemButton
+                  sx={{
+                    py: 2,
+                    px: 1.5,
+                    '&:hover': { backgroundColor: '#ffe600', color: '#333333' },
+                    borderLeft: item.path === selectedPath ? `4px solid #ffe600` : 'none',
+                    color: item.path === selectedPath ? '#ffe600' : 'inherit',
+                  }}
+                >
+                  <ListItemIcon sx={{ color: item.path === selectedPath ? '#ffe600' : 'white', minWidth: collapsed ? 'auto' : 56 }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  {!collapsed && (
+                    <ListItemText primary={item.text} sx={{ color: item.path === selectedPath ? '#ffe600' : 'white' }} />
+                  )}
+                </ListItemButton>
+              </NavLink>
+            </Tooltip>
+          </ListItem>
+        ))}
+        <Divider sx={{ my: 2, backgroundColor: 'white' }} />
+        {additionalItems.map((item, index) => (
+          <ListItem key={index} disablePadding>
+            <Tooltip title={!collapsed ? '' : item.text} placement='right'>
+              <NavLink
+                to={item.path}
+                style={{ textDecoration: 'none', color: 'inherit', width: '100%' }}
+                onClick={() => handleItemClick(item.path)}
+              >
+                <ListItemButton
+                  sx={{
+                    py: 2,
+                    px: 1.5,
+                    '&:hover': { backgroundColor: '#ffe600', color: '#333333' },
+                    borderLeft: item.path === selectedPath ? `4px solid #ffe600` : 'none',
+                    color: item.path === selectedPath ? '#ffe600' : 'inherit',
+                  }}
+                >
+                  <ListItemIcon sx={{ color: item.path === selectedPath ? '#ffe600' : 'white', minWidth: collapsed ? 'auto' : 56 }}>
+                    {item.icon}
+                  </ListItemIcon>
+                  {!collapsed && (
+                    <ListItemText primary={item.text} sx={{ color: item.path === selectedPath ? '#ffe600' : 'white' }} />
+                  )}
+                </ListItemButton>
+              </NavLink>
             </Tooltip>
           </ListItem>
         ))}

@@ -1,32 +1,33 @@
-import { Box } from '@mui/material';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useState } from 'react';
-import Sidebar from './components/layouts/dashboard/Sidebar';
-import Navbar from './components/layouts/dashboard/Navbar';
+import Login from './components/layouts/auth/Login';
+import DashboardLayout from './components/layouts/dashboard/DashboardLayout';
+import AppRoutes from './routes/AppRoutes';
 
 const App = () => {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-
-  const toggleCollapse = () => setSidebarCollapsed((prev) => !prev);
+  const [isAuthenticated, setIsAuthenticated] = useState(false); // Fake auth state
 
   return (
-    <Box sx={{ display: 'flex', flexWrap: 'nowrap' }}>
-      <Sidebar collapsed={sidebarCollapsed} />
-      <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <Navbar onToggleCollapse={toggleCollapse} collapsed={sidebarCollapsed} />
-        <Box
-          component='main'
-          sx={{
-            flexGrow: 1,
-            backgroundColor: '#f4f4f4',
-            padding: '24px',
-            marginTop: '64px',
-            fontFamily: 'Roboto, sans-serif',
-          }}
-        >
-          <h1>Welcome to Your Dashboard</h1>
-        </Box>
-      </Box>
-    </Box>
+    <Router>
+      <Routes>
+        {/* Public Route */}
+        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+
+        {/* Protected Dashboard Routes */}
+        <Route
+          path="/*"
+          element={
+            isAuthenticated ? (
+              <DashboardLayout>
+                <AppRoutes />
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 
