@@ -12,7 +12,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
 
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
-      <Sidebar collapsed={collapsed} />
+      <Sidebar collapsed={collapsed} onClose={() => setCollapsed(true)} />
       <Box
         sx={{
           flexGrow: 1,

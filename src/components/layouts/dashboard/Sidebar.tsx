@@ -10,14 +10,14 @@ import {
   Tooltip,
   Divider,
 } from '@mui/material';
-import { Dashboard, MonetizationOn, Group, Warning, AccountCircle, Settings, Assignment, Assessment } from '@mui/icons-material';
+import { Dashboard, MonetizationOn, Group, Warning, AccountCircle,  Assignment, Assessment } from '@mui/icons-material';
 import { useTheme, useMediaQuery } from '@mui/material';
 
 interface SidebarProps {
   collapsed: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
+const Sidebar: React.FC<SidebarProps & { onClose: () => void }> = ({ collapsed, onClose }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const location = useLocation();
@@ -25,6 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed }) => {
 
   const handleItemClick = (path: string) => {
     setSelectedPath(path);
+    if (isMobile) onClose(); // Close the sidebar when a menu item is clicked
   };
 
   const menuItems = [

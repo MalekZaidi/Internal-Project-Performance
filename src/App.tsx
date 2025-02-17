@@ -6,6 +6,7 @@ import AppRoutes from './routes/AppRoutes';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false); // Fake auth state
+  
 
   return (
     <Router>
