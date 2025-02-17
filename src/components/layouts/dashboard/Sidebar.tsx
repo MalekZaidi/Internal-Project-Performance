@@ -1,23 +1,18 @@
 import React, { useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import {
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListItemIcon,
-  ListItemText,
-  Tooltip,
-  Divider,
+  Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
+  Tooltip, Divider, useTheme, useMediaQuery, IconButton
 } from '@mui/material';
-import { Dashboard, MonetizationOn, Group, Warning, AccountCircle,  Assignment, Assessment } from '@mui/icons-material';
-import { useTheme, useMediaQuery } from '@mui/material';
+import { Dashboard, MonetizationOn, Group, Warning, AccountCircle, Assignment, Assessment, Close } from '@mui/icons-material';
 
 interface SidebarProps {
   collapsed: boolean;
+  onClose: () => void;
+  isOpen: boolean;
 }
 
-const Sidebar: React.FC<SidebarProps & { onClose: () => void }> = ({ collapsed, onClose }) => {
+const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const location = useLocation();
@@ -30,37 +25,41 @@ const Sidebar: React.FC<SidebarProps & { onClose: () => void }> = ({ collapsed, 
 
   const menuItems = [
     { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
-    { text: 'Projects', icon: <Assignment />, path: '/projects' },  // Changed icon to Assignment for Projects
+    { text: 'Projects', icon: <Assignment />, path: '/projects' },
     { text: 'Budgets', icon: <MonetizationOn />, path: '/budgets' },
     { text: 'Resources', icon: <Group />, path: '/resources' },
     { text: 'Risk Management', icon: <Warning />, path: '/risk-management' },
-    { text: 'Reports', icon: <Assessment />, path: '/reports' },  // Changed icon to Assessment for Reports
+    { text: 'Reports', icon: <Assessment />, path: '/reports' },
   ];
 
-  const additionalItems = [
-    { text: 'Account', icon: <AccountCircle />, path: '/account' },
-
-  ];
+  const additionalItems = [{ text: 'Account', icon: <AccountCircle />, path: '/account' }];
 
   return (
     <Drawer
       variant={isMobile ? 'temporary' : 'persistent'}
-      open
+      open={isMobile ? isOpen : true} // Only open on mobile when `isOpen` is true
+      onClose={onClose} // Allows clicking outside to close
       sx={{
-        width: collapsed ? 60 : 200,
+        width: collapsed ? 60 : 240,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: collapsed ? 60 : 200,
+          width: collapsed ? 60 : 240,
           boxSizing: 'border-box',
           backgroundColor: '#333333',
           color: 'white',
-          paddingTop: '64px',
+          paddingTop: '64px', // Adjust this to prevent going under navbar
           transition: 'width 0.3s',
           fontFamily: 'Roboto, sans-serif',
           overflowX: 'hidden',
+          zIndex: 1200, // Ensure sidebar is below the navbar
         },
       }}
     >
+      {isMobile && (
+        <IconButton onClick={onClose} sx={{ position: 'absolute', top: 10, right: 10, color: 'white' }}>
+          <Close />
+        </IconButton>
+      )}
       <List>
         {menuItems.map((item, index) => (
           <ListItem key={index} disablePadding>
@@ -82,9 +81,7 @@ const Sidebar: React.FC<SidebarProps & { onClose: () => void }> = ({ collapsed, 
                   <ListItemIcon sx={{ color: item.path === selectedPath ? '#ffe600' : 'white', minWidth: collapsed ? 'auto' : 56 }}>
                     {item.icon}
                   </ListItemIcon>
-                  {!collapsed && (
-                    <ListItemText primary={item.text} sx={{ color: item.path === selectedPath ? '#ffe600' : 'white' }} />
-                  )}
+                  {!collapsed && <ListItemText primary={item.text} sx={{ color: item.path === selectedPath ? '#ffe600' : 'white' }} />}
                 </ListItemButton>
               </NavLink>
             </Tooltip>
@@ -111,9 +108,7 @@ const Sidebar: React.FC<SidebarProps & { onClose: () => void }> = ({ collapsed, 
                   <ListItemIcon sx={{ color: item.path === selectedPath ? '#ffe600' : 'white', minWidth: collapsed ? 'auto' : 56 }}>
                     {item.icon}
                   </ListItemIcon>
-                  {!collapsed && (
-                    <ListItemText primary={item.text} sx={{ color: item.path === selectedPath ? '#ffe600' : 'white' }} />
-                  )}
+                  {!collapsed && <ListItemText primary={item.text} sx={{ color: item.path === selectedPath ? '#ffe600' : 'white' }} />}
                 </ListItemButton>
               </NavLink>
             </Tooltip>

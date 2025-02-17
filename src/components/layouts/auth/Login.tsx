@@ -1,26 +1,32 @@
-import  { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Button, TextField, Typography, Card, CardContent } from '@mui/material';
 import { styled } from '@mui/system';
 import logo from '../../../assets/eylogo.png';
 
-const LoginContainer = styled(Box)({
+const LoginContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
   justifyContent: 'center',
   alignItems: 'center',
   width: '100vw',
   height: '100vh',
-  backgroundColor: '#222', // Dark background
-});
+  backgroundColor: '#222',
+  [theme.breakpoints.down('sm')]: {
+    padding: '20px',
+  },
+}));
 
-const StyledCard = styled(Card)({
-  width: '90%',  // Use a percentage for better responsiveness
-  maxWidth: 400, // Limit max width
+const StyledCard = styled(Card)(({ theme }) => ({
+  width: '90%',
+  maxWidth: 400,
   padding: '32px',
   textAlign: 'center',
   borderRadius: '8px',
   backgroundColor: '#fff',
-});
+  [theme.breakpoints.down('sm')]: {
+    padding: '16px',
+  },
+}));
 
 const Logo = styled('img')({
   width: '80px',
@@ -52,13 +58,57 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
         </Typography>
 
         <CardContent>
-          <TextField fullWidth label="Email address" variant="outlined" margin="normal" value={email} onChange={(e) => setEmail(e.target.value)} />
-          <TextField fullWidth label="Password" variant="outlined" type="password" margin="normal" value={password} onChange={(e) => setPassword(e.target.value)} />
+          <TextField
+            fullWidth
+            label="Email address"
+            variant="outlined"
+            margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            InputLabelProps={{
+              style: {
+                fontSize: '14px',
+              },
+            }}
+            inputProps={{
+              style: {
+                fontSize: '14px',
+              },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            variant="outlined"
+            type="password"
+            margin="normal"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            InputLabelProps={{
+              style: {
+                fontSize: '14px',
+              },
+            }}
+            inputProps={{
+              style: {
+                fontSize: '14px',
+              },
+            }}
+          />
 
           <Button
             fullWidth
             variant="contained"
-            sx={{ mt: 2, backgroundColor: '#222', color: 'white', '&:hover': { backgroundColor: '#ffe600', color: '#222' } }}
+            sx={{
+              mt: 2,
+              backgroundColor: '#222',
+              color: 'white',
+              fontSize: '14px',
+              '&:hover': {
+                backgroundColor: '#ffe600',
+                color: '#222',
+              },
+            }}
             onClick={handleLogin}
           >
             SIGN IN

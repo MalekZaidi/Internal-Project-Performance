@@ -3,6 +3,7 @@ import { Routes, Route } from 'react-router-dom';
 
 // Lazy load pages
 const Projects = lazy(() => import('../pages/project/Projects'));
+const AddProject = lazy(() => import('../pages/project/CreateProjectForm')); // Import AddProject page
 const Budgets = lazy(() => import('../pages/budget/Budgets'));
 const Resources = lazy(() => import('../pages/resource/Resources'));
 const RiskManagement = lazy(() => import('../pages/risk/RiskManagement'));
@@ -16,6 +17,7 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/projects" element={<Projects />} />
+        <Route path="/projects/add" element={<AddProject />} /> {/* Add new route */}
         <Route path="/budgets" element={<Budgets />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/risk-management" element={<RiskManagement />} />
