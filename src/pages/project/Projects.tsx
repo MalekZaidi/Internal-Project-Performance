@@ -1,4 +1,3 @@
-// src/pages/project/Projects.tsx
 import React from 'react';
 import { Box, Typography } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -8,7 +7,8 @@ const Projects: React.FC = () => {
   const navigate = useNavigate();
 
   const handleAddProject = () => {
-    navigate('/projects/add'); // Redirect to Add Project page
+     navigate('/projects/add'); 
+
   };
 
   return (
@@ -17,7 +17,7 @@ const Projects: React.FC = () => {
       <CustomButton onClick={handleAddProject}>
         Add New Project
       </CustomButton>
-      {/* Rest of your projects page content */}
+
     </Box>
   );
 };

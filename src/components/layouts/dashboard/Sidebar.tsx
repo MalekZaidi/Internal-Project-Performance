@@ -4,7 +4,8 @@ import {
   Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText,
   Tooltip, Divider, useTheme, useMediaQuery, IconButton
 } from '@mui/material';
-import { Dashboard, MonetizationOn, Group, Warning, AccountCircle, Assignment, Assessment, Close } from '@mui/icons-material';
+import {  MonetizationOn, Group, Warning, AccountCircle, Assignment, Assessment, Close , Home} from '@mui/icons-material';
+
 
 interface SidebarProps {
   collapsed: boolean;
@@ -24,15 +25,17 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <Dashboard />, path: '/dashboard' },
+    { text: 'Dashboard', icon: <Home />, path: '/dashboard' },
     { text: 'Projects', icon: <Assignment />, path: '/projects' },
     { text: 'Budgets', icon: <MonetizationOn />, path: '/budgets' },
     { text: 'Resources', icon: <Group />, path: '/resources' },
     { text: 'Risk Management', icon: <Warning />, path: '/risk-management' },
-    { text: 'Reports', icon: <Assessment />, path: '/reports' },
+    { text: 'Reports', icon: <Assessment />, path: '/reports' }
+    
+
   ];
 
-  const additionalItems = [{ text: 'Account', icon: <AccountCircle />, path: '/account' }];
+  const additionalItems = [{ text: 'Account', icon: <AccountCircle />, path: '/Account' }];
 
   return (
     <Drawer

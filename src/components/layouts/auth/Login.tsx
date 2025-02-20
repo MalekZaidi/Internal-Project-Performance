@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Button, TextField, Typography, Card, CardContent } from '@mui/material';
+import { Box, TextField, Typography, Card, CardContent, Alert } from '@mui/material';
 import { styled } from '@mui/system';
 import logo from '../../../assets/eylogo.png';
+import CustomButton from '../../ui/CustomButton';
+import { login } from '../../../features/auth/api/authService';
 
 const LoginContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -37,14 +39,15 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState<string | null>(null);  // Added state for error
 
-  const handleLogin = () => {
-    if (email === 'a' && password === 'a') {
-      localStorage.setItem('auth', 'true'); // Store login state
+  const handleLogin = async () => {
+    try {
+      const response = await login(email, password);
       setIsAuthenticated(true);
-      navigate('/dashboard'); // Redirect to dashboard
-    } else {
-      alert('Invalid credentials! Try a / a');
+      navigate('/dashboard');  // Redirect to dashboard
+    } catch (error) {
+      setError('Invalid credentials!');  // Set error message
     }
   };
 
@@ -58,6 +61,8 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
         </Typography>
 
         <CardContent>
+          {error && <Alert severity="error" sx={{ marginBottom: '16px' }}>{error}</Alert>}  {/* Display error message */}
+
           <TextField
             fullWidth
             label="Email address"
@@ -96,23 +101,7 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
             }}
           />
 
-          <Button
-            fullWidth
-            variant="contained"
-            sx={{
-              mt: 2,
-              backgroundColor: '#222',
-              color: 'white',
-              fontSize: '14px',
-              '&:hover': {
-                backgroundColor: '#ffe600',
-                color: '#222',
-              },
-            }}
-            onClick={handleLogin}
-          >
-            SIGN IN
-          </Button>
+          <CustomButton onClick={handleLogin}>SIGN IN</CustomButton>
         </CardContent>
       </StyledCard>
     </LoginContainer>

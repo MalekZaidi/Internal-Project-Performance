@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, TextField, Button, Typography, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import { Box, TextField, Typography, Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useDispatch } from 'react-redux';
 import { createProject } from '../../features/project-management/stores/projectStore'; // Example action for creating a project
 import CustomButton from '../../components/ui/CustomButton';
@@ -39,7 +39,7 @@ const CreateProjectForm: React.FC = () => {
     >
       <Typography variant="h6" sx={{ marginBottom: '16px', textAlign: 'center' }}>Create New Project</Typography>
       <Grid container spacing={2}>
-        {/* Left Column */}
+
         <Grid item xs={12} sm={6}>
           <TextField
             label="Project Name"

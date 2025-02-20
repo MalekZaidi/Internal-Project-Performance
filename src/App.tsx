@@ -11,10 +11,9 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        {/* Public Route */}
         <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
 
-        {/* Protected Dashboard Routes */}
+
         <Route
           path="/*"
           element={
@@ -22,7 +21,9 @@ const App = () => {
               <DashboardLayout>
                 <AppRoutes />
               </DashboardLayout>
-            ) : (
+            ) 
+             : 
+             (
               <Navigate to="/login" />
             )
           }

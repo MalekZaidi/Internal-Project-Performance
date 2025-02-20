@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -20,17 +20,19 @@ import {
   ListItem,
   Divider,
 } from '@mui/material';
-import {
+import { 
   Menu as MenuIcon,
   Search as SearchIcon,
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
 } from '@mui/icons-material';
 import logo from '../../../assets/logo.png';
+import { useProfile } from '../../../features/auth/hooks/useProfile';
 
 interface NavbarProps {
   onToggleCollapse: () => void;
   collapsed: boolean;
+  
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
@@ -38,6 +40,16 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [project, setProject] = useState('');
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { profile, loading, error } = useProfile();
+  const [userName, setUserName] = useState('');
+  const [userRole, setUserRole] = useState('');
+
+  useEffect(() => {
+    if (profile) {
+      setUserName(profile.fullName); 
+      setUserRole(profile.role);
+    }
+  }, [profile]);
 
   const handleProjectChange = (event: SelectChangeEvent) => {
     setProject(event.target.value as string);
@@ -61,7 +73,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             <MenuIcon />
           </IconButton>
           <img src={logo} alt="Logo" style={{ height: 40 }} />
-          <Typography
+          { <Typography
             variant="h6"
             sx={{
               ml: 2,
@@ -72,7 +84,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             }}
           >
             Internal Project Performance
-          </Typography>
+          </Typography> }
         </Box>
 
         {/* Mobile Menu Toggle */}
@@ -157,12 +169,14 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
 
         {/* Right Section - User Info (Name, Role, Avatar) Always Visible */}
         <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+          
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mx: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'white' }}>
-              Malek Zaidi
+            {userName}
             </Typography>
             <Typography variant="body2" sx={{ color: '#ccc' }}>
-              Admin
+            {userRole}
+
             </Typography>
           </Box>
           <Avatar sx={{ width: 40, height: 40 }} />
@@ -170,12 +184,16 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
       </Toolbar>
 
       {/* Mobile Drawer Menu - Project Selection, Search, Notifications, Settings */}
-      <Drawer anchor="right" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)}>
-        <List sx={{ width: 250, paddingTop: '64px' }}> {/* Adjust padding to make sure items are visible */}
+
+      
+      <Drawer         
+            variant={isMobile ? 'temporary' : 'persistent'}
+             anchor="right" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} >
+        <List sx={{ width: 250, paddingTop: '64px' }}> 
           <ListItem>
             <Typography
               variant="h6"
-              sx={{
+              sx={{ 
                 fontSize: '1.25rem',
                 textAlign: 'center',
                 width: '100%',
@@ -212,6 +230,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             </IconButton>
           </ListItem>
         </List>
+
       </Drawer>
     </AppBar>
   );

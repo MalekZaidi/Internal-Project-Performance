@@ -1,7 +1,6 @@
 import  { lazy, Suspense } from 'react';
 import { Routes, Route } from 'react-router-dom';
 
-// Lazy load pages
 const Projects = lazy(() => import('../pages/project/Projects'));
 const AddProject = lazy(() => import('../pages/project/CreateProjectForm')); // Import AddProject page
 const Budgets = lazy(() => import('../pages/budget/Budgets'));
@@ -9,7 +8,8 @@ const Resources = lazy(() => import('../pages/resource/Resources'));
 const RiskManagement = lazy(() => import('../pages/risk/RiskManagement'));
 const Dashboard = lazy(() => import('../pages/dashboard/Dashboard'));
 const Reports = lazy(() => import('../pages/reports/Reports'));
-
+const NotFound = lazy(() => import('../pages/notfound'));
+const Account = lazy(()=> import ('../pages/auth/Profile'))
 const AppRoutes = () => {
   return (
     <Suspense fallback={<h1>Loading...</h1>}>
@@ -17,11 +17,12 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/projects" element={<Projects />} />
-        <Route path="/projects/add" element={<AddProject />} /> {/* Add new route */}
+        <Route path="/projects/add" element={<AddProject />} /> 
         <Route path="/budgets" element={<Budgets />} />
         <Route path="/resources" element={<Resources />} />
         <Route path="/risk-management" element={<RiskManagement />} />
-        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+        <Route path="/Account" element={<Account/>}/>
+        <Route path="*" element={<NotFound/>} />
       </Routes>
     </Suspense>
   );
