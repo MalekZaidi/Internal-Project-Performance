@@ -11,18 +11,17 @@ import {
   CategoryScale,
   LinearScale,
 } from 'chart.js';
+import BarChart from '../../components/ui/BarChart';
 
-// Register Chart.js components
+
 ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale);
 
 const Dashboard: React.FC = () => {
-  // Sample data (replace with actual dynamic data)
   const totalProjects = 120;
   const offTrackProjects = 15;
   const completedProjects = 90;
   const atRiskProjects = 10;
 
-  // Prepare data for the doughnut chart
   const data = {
     labels: ['Off Track', 'Completed', 'At Risk'],
     datasets: [
@@ -59,7 +58,6 @@ const Dashboard: React.FC = () => {
         Dashboard
       </Typography>
       <Grid container spacing={3}>
-        {/* Total Projects Card */}
         <Grid display={'flex'} item xs={12} sm={6} md={3}>
           <Card>
             <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
@@ -74,7 +72,6 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Off Track Projects Card */}
         <Grid display={'flex'} item xs={12} sm={6} md={3}>
           <Card>
             <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
@@ -91,7 +88,6 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* Completed Projects Card */}
         <Grid display={'flex'} item xs={12} sm={6} md={3}>
           <Card>
             <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
@@ -108,7 +104,6 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        {/* At Risk Projects Card */}
         <Grid display={'flex'} item xs={12} sm={6} md={3}>
           <Card>
             <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
@@ -124,7 +119,16 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
-
+        <Grid  item xs={12} sm={6} md={6}>
+          <Card>
+            <CardContent sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              <Typography variant="h6" gutterBottom>
+                Budget Comparison
+              </Typography>
+              <BarChart />
+            </CardContent>
+          </Card>
+        </Grid>
         {/* Doughnut Chart */}
         <Grid display={'flex'} item xs={12} sm={6} md={6}>
           <Card>
@@ -136,6 +140,8 @@ const Dashboard: React.FC = () => {
             </CardContent>
           </Card>
         </Grid>
+
+
       </Grid>
     </Box>
   );

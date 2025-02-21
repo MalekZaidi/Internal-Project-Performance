@@ -21,7 +21,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
 
   const handleItemClick = (path: string) => {
     setSelectedPath(path);
-    if (isMobile) onClose(); // Close the sidebar when a menu item is clicked
+    if (isMobile) onClose();
   };
 
   const menuItems = [
@@ -40,8 +40,8 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
   return (
     <Drawer
       variant={isMobile ? 'temporary' : 'persistent'}
-      open={isMobile ? isOpen : true} // Only open on mobile when `isOpen` is true
-      onClose={onClose} // Allows clicking outside to close
+      open={isMobile ? isOpen : true} 
+      onClose={onClose} 
       sx={{
         width: collapsed ? 60 : 240,
         flexShrink: 0,
@@ -50,11 +50,11 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
           boxSizing: 'border-box',
           backgroundColor: '#333333',
           color: 'white',
-          paddingTop: '64px', // Adjust this to prevent going under navbar
+          paddingTop: '64px', 
           transition: 'width 0.3s',
           fontFamily: 'Roboto, sans-serif',
           overflowX: 'hidden',
-          zIndex: 1200, // Ensure sidebar is below the navbar
+          zIndex: 1200,
         },
       }}
     >

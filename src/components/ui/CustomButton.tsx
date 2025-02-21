@@ -1,9 +1,8 @@
-// src/components/CustomButton.tsx
 import React from 'react';
 import { Button, ButtonProps } from '@mui/material';
 
 interface CustomButtonProps extends ButtonProps {
-  // Add any custom props if needed
+  // custom ey button 
 }
 
 const CustomButton: React.FC<CustomButtonProps> = ({ children, ...props }) => {

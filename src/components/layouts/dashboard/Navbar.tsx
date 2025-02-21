@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // Import the icon
 import {
   AppBar,
   Toolbar,
@@ -19,30 +20,36 @@ import {
   List,
   ListItem,
   Divider,
+  Menu,
 } from '@mui/material';
 import { 
-  Menu as MenuIcon,
   Search as SearchIcon,
+  Clear as ClearIcon,
   Notifications as NotificationsIcon,
   Settings as SettingsIcon,
+  Menu as MenuIcon,
+  ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material';
 import logo from '../../../assets/logo.png';
 import { useProfile } from '../../../features/auth/hooks/useProfile';
+import ExitToAppIcon from '@mui/icons-material/ExitToApp';
+import { logout } from '../../../features/auth/api/authService';
 
 interface NavbarProps {
   onToggleCollapse: () => void;
-  collapsed: boolean;
-  
+  collapsed : boolean;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [project, setProject] = useState('');
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { profile, loading, error } = useProfile();
+  const { profile } = useProfile();
   const [userName, setUserName] = useState('');
   const [userRole, setUserRole] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // For dropdown menu
 
   useEffect(() => {
     if (profile) {
@@ -53,6 +60,22 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
 
   const handleProjectChange = (event: SelectChangeEvent) => {
     setProject(event.target.value as string);
+  };
+
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
+  };
+
+  const clearSearch = () => {
+    setSearchTerm('');
+  };
+
+  const handleAvatarClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (isMobile) {
+      setMenuOpen(true);
+    } else {
+      setAnchorEl(event.currentTarget); 
+    }
   };
 
   return (
@@ -67,38 +90,24 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
           gap: 1,
         }}
       >
-        {/* Left Section - Menu, Logo & Title */}
-        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1, minWidth: 0 }}>
+        {/* Left Section */}
+        <Box sx={{ display: 'flex', alignItems: 'center', flexGrow: 1 }}>
           <IconButton edge="start" color="inherit" onClick={onToggleCollapse} sx={{ mr: 1 }}>
             <MenuIcon />
           </IconButton>
           <img src={logo} alt="Logo" style={{ height: 40 }} />
-          { <Typography
-            variant="h6"
-            sx={{
-              ml: 2,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              fontSize: '1.25rem',
-            }}
-          >
-            Internal Project Performance
-          </Typography> }
+          {!isMobile && (
+            <Typography variant="h6" sx={{ ml: 2, whiteSpace: 'nowrap' }}>
+              Internal Project Performance
+            </Typography>
+          )}
         </Box>
 
-        {/* Mobile Menu Toggle */}
-        {isMobile && (
-          <IconButton color="inherit" onClick={() => setMobileMenuOpen(true)}>
-            <MenuIcon />
-          </IconButton>
-        )}
-
-        {/* Desktop View - Project Selection, Search, Notifications, Settings */}
+        {/* Desktop View */}
         {!isMobile && (
           <>
             <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-              <Typography variant="body1" sx={{ color: 'white', mr: 1, whiteSpace: 'nowrap' }}>
+              <Typography variant="body1" sx={{ color: 'white', mr: 1 }}>
                 Project:
               </Typography>
               <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
@@ -110,7 +119,6 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
                   sx={{
                     color: 'white',
                     '& .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-                    '&:hover .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
                     '& .MuiSvgIcon-root': { color: 'white' },
                   }}
                 >
@@ -122,40 +130,33 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             </Box>
 
             {/* Search Bar */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                backgroundColor: '#f1f3f4',
-                borderRadius: '24px',
-                padding: '6px 12px',
-                width: 280,
-                minWidth: 180,
-                mx: 2,
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-              }}
-            >
-              <SearchIcon sx={{ color: '#5f6368', mr: 1 }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#333', borderRadius: 1, width: 280, mx: 2 }}>
               <TextField
                 variant="standard"
                 placeholder="Search..."
+                value={searchTerm}
+                onChange={handleSearchChange}
                 sx={{
                   width: '100%',
-                  fontSize: '16px',
-                  '& input': {
-                    padding: '4px 0',
-                  },
-                  '&::placeholder': {
-                    color: '#5f6368',
-                  },
+                  '& input': { padding: '4px 0', color: 'white' },
                 }}
                 InputProps={{
                   disableUnderline: true,
+                  endAdornment: (
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {searchTerm && (
+                        <IconButton onClick={clearSearch} sx={{ padding: 0 }}>
+                          <ClearIcon sx={{ color: 'white' }} />
+                        </IconButton>
+                      )}
+                      <SearchIcon sx={{ color: 'white' }} />
+                    </Box>
+                  ),
                 }}
               />
             </Box>
 
-            {/* Notifications & Settings Icons */}
+            {/* Notifications & Settings */}
             <IconButton color="inherit">
               <Badge badgeContent={4} color="error">
                 <NotificationsIcon />
@@ -167,38 +168,60 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
           </>
         )}
 
-        {/* Right Section - User Info (Name, Role, Avatar) Always Visible */}
-        <Box sx={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
-          
+        {/* Avatar & Dropdown */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mx: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'white' }}>
-            {userName}
+              {userName}
             </Typography>
             <Typography variant="body2" sx={{ color: '#ccc' }}>
-            {userRole}
-
+              {userRole}
             </Typography>
           </Box>
-          <Avatar sx={{ width: 40, height: 40 }} />
+          <Avatar sx={{ width: 40, height: 40, cursor: 'pointer' }} onClick={handleAvatarClick} />
+          {!isMobile && (
+            <IconButton color="inherit" onClick={handleAvatarClick}>
+              <ArrowDropDownIcon />
+            </IconButton>
+          )}
         </Box>
+
+        {/* Dropdown Menu */}
+        <Menu
+                  anchorEl={anchorEl}
+                  open={Boolean(anchorEl)}
+                  onClose={() => setAnchorEl(null)}
+                  MenuListProps={{
+                    sx: {
+                      '& .MuiMenuItem-root': {
+                        color: '#333333', 
+                        '&:hover': {
+                          backgroundColor: '#FFE600', 
+                        },
+                      },
+                    },
+                  }}
+>
+            <MenuItem component="a" href="/Account">
+              <AccountCircleIcon sx={{ marginRight: 1, color: '#333333' }} />
+              Profile
+            </MenuItem>
+
+            <MenuItem onClick={logout}>
+              <ExitToAppIcon sx={{ marginRight: 1, color: '#333333' }} />
+              <Typography sx={{ color: '#333333' }}>Logout</Typography>
+            </MenuItem>
+          </Menu>
+
+
       </Toolbar>
 
-      {/* Mobile Drawer Menu - Project Selection, Search, Notifications, Settings */}
-
-      
-      <Drawer         
-            variant={isMobile ? 'temporary' : 'persistent'}
-             anchor="right" open={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} >
-        <List sx={{ width: 250, paddingTop: '64px' }}> 
+      {/* Mobile Drawer */}
+      <Drawer anchor="left" open={menuOpen} onClose={() => setMenuOpen(false)}>
+        <List sx={{ width: 250, paddingTop: '64px', backgroundColor: '#333', color: 'white' }}>
+          <Divider />
           <ListItem>
-            <Typography
-              variant="h6"
-              sx={{ 
-                fontSize: '1.25rem',
-                textAlign: 'center',
-                width: '100%',
-              }}
-            >
+            <Typography variant="h6" sx={{ textAlign: 'center', width: '100%' }}>
               Internal Project Performance
             </Typography>
           </ListItem>
@@ -215,8 +238,8 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
           </ListItem>
           <Divider />
           <ListItem>
-            <SearchIcon sx={{ mr: 1 }} />
             <TextField variant="standard" placeholder="Search..." fullWidth />
+            <SearchIcon sx={{ color: 'white', ml: 1 }} />
           </ListItem>
           <Divider />
           <ListItem>
@@ -230,7 +253,6 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             </IconButton>
           </ListItem>
         </List>
-
       </Drawer>
     </AppBar>
   );

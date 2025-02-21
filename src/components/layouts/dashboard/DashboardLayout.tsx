@@ -37,7 +37,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
           sx={{
             flexGrow: 1,
             backgroundColor: '#f4f4f4',
-            padding: '24px',
+            padding: isMobile ? '16px' : '24px',
             marginTop: '64px',
             overflow: 'auto',
             width: '100%',

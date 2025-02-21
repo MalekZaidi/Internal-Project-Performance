@@ -1,181 +1,195 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { 
-    Box, Typography, Avatar, Card, CardContent, Grid, TextField, Tabs, Tab, Button, Divider 
+    Box, Typography, Avatar, Card, CardContent, CircularProgress, 
+    Grid, TextField, Tabs, Tab, Divider 
 } from '@mui/material';
 import { styled } from '@mui/system';
+import { fetchUserProfile } from '../../features/auth/api/authService';
 import CustomButton from '../../components/ui/CustomButton';
 
 const ProfileContainer = styled(Box)({
     width: '100vw',
-    backgroundColor: '#eee',
-    padding: '20px',
+    minHeight: '100vh',
+    backgroundColor: '#F5F5F5',
+    padding: '40px',
     display: 'flex',
     justifyContent: 'center',
 });
 
 const CardStyled = styled(Card)({
-    borderRadius: '8px',
-    background: '#fff',
+    borderRadius: '12px',
+    boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+    overflow: 'hidden',
+    padding: '20px',
 });
 
 const AvatarStyled = styled(Avatar)({
-    width: 150,
-    height: 150,
-    margin: '0 auto 16px',
+    width: 120,
+    height: 120,
+    border: '4px solid #FFE600',
 });
 
-const StyledTabs = styled(Tabs)({
-    borderBottom: '2px solid #eee', // Yellow tab indicator
+const SectionTitle = styled(Typography)({
+    fontWeight: 'bold',
+    marginBottom: '12px',
+    fontSize: '1.1rem',
 });
 
-const StyledTab = styled(Tab)(({ theme }) => ({
+const TabsStyled = styled(Tabs)({
+    borderBottom: '2px solid #ddd',
+    '& .MuiTabs-indicator': {
+        backgroundColor: '#FFE600',
+        height: '3px',
+        borderRadius: '3px',
+    },
+});
+
+const TabStyled = styled(Tab)({
     textTransform: 'none',
     fontWeight: 'bold',
-    borderBottom: '2px solid #FFE600', // Yellow tab indicator
-
-    
-}));
-
-const TabPanel = ({ children, value, index }: { children: React.ReactNode; value: number; index: number }) => {
-    return value === index ? <Box sx={{ mt: 3 }}>{children}</Box> : null;
-};
+    fontSize: '1rem',
+    '&.Mui-selected': {
+        color: '#333',
+    },
+});
 
 const UserProfile = () => {
-    const [activeTab, setActiveTab] = useState(0);
-    const [isEditing, setIsEditing] = useState(false); // Toggle form visibility
-    const [profileData, setProfileData] = useState({
-        name: 'Malek Zaidi',
-        email: 'malek.zaidi@esprit.tn',
-        dateOfBirth: '1990-01-25',
-        address: 'La Marsa, Tunis',
+    const [user, setUser] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [isEditing, setIsEditing] = useState<boolean>(false);
+    const [activeTab, setActiveTab] = useState<number>(0);
+    const [editableFields, setEditableFields] = useState<any>({
+        email: '',
+        fullName: '',
+        phone: '',
+        mobile: '',
+        address: '',
     });
 
-    const handleTabChange = (event: React.SyntheticEvent, newValue: number) => {
-        setActiveTab(newValue);
-    };
+    useEffect(() => {
+        const getUserProfile = async () => {
+            try {
+                const profileData = await fetchUserProfile();
+                setUser(profileData);
+                setEditableFields({
+                    email: profileData.login,
+                    fullName: profileData.fullName,
+                    phone: '(097) 234-5678',
+                    mobile: '(098) 765-4321',
+                    address: 'Bay Area, San Francisco, CA',
+                });
+            } catch (error) {
+                console.error('Failed to load user profile');
+            } finally {
+                setLoading(false);
+            }
+        };
+        getUserProfile();
+    }, []);
 
-    const handleEditProfile = () => {
-        setIsEditing(true);
-    };
-
-    const handleCancelEdit = () => {
+    const handleSaveChanges = () => {
+        console.log('Updated fields:', editableFields);
         setIsEditing(false);
     };
 
-    const tabs = ["Profile", "Preferences", "Security"];
-
+    if (loading) {
+        return (
+            <ProfileContainer>
+                <CircularProgress />
+            </ProfileContainer>
+        );
+    }
 
     return (
         <ProfileContainer>
-            <Grid container spacing={3} sx={{ maxWidth: '900px' }}>
-                
-                {/* Avatar & Basic Info Card */}
-                <Grid item xs={12} md={4}>
+            <Grid container spacing={4} maxWidth="1000px">
+                {/* Profile Info (Avatar + Details) */}
+                <Grid item xs={12}>
                     <CardStyled>
-                        <CardContent sx={{ textAlign: 'center' }}>
-                            <AvatarStyled src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" />
-                            <Typography variant="h5" fontWeight="bold">{profileData.name}</Typography>
-                            <Typography variant="body2" color="text.secondary">{profileData.email}</Typography>
-                            <Typography variant="body2" color="text.secondary" mb={2}>{profileData.address}</Typography>
-                            {!isEditing ? (
-                                <CustomButton onClick={handleEditProfile}>Edit Profile</CustomButton>
-                            ) : null}
-                        </CardContent>
+                        <Grid container spacing={3} alignItems="center">
+                            <Grid item xs={12} sm={4} display="flex" justifyContent="center">
+                                <AvatarStyled src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp" />
+                            </Grid>
+                            <Grid item xs={12} sm={8}>
+                                <Typography variant="h5" fontWeight="bold">{editableFields.fullName}</Typography>
+                                <Typography variant="body2" color="text.secondary" mb={1}>{user?.role}</Typography>
+                                <Typography variant="body2" color="text.secondary" mb={2}>{editableFields.address}</Typography>
+                                <CustomButton onClick={() => setIsEditing(!isEditing)}>
+                                    {isEditing ? "Cancel" : "Edit Profile"}
+                                </CustomButton>
+                            </Grid>
+                        </Grid>
                     </CardStyled>
                 </Grid>
 
-                {/* Profile Details & Tabs Card */}
-                <Grid item xs={12} md={8}>
+                <Grid item xs={12}>
                     <CardStyled>
+                        <TabsStyled value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} centered>
+                            <TabStyled label="Profile" />
+                            <TabStyled label="Preferences" />
+                            <TabStyled label="Security" />
+                        </TabsStyled>
+
                         <CardContent>
-                            {/* Tabs Navigation */}
-                  <Tabs value={activeTab} onChange={handleTabChange} centered>
-                            <StyledTab 
-                                label="Profile" 
-                                sx={{ color: activeTab === 0 ? '#ffe600' : 'inherit' }} 
-                            />
-                            <StyledTab 
-                                label="Preferences"
-                                 
-                                sx={{ color: activeTab === 1 ? '#FFE600' : 'inherit' }} 
-                            />
-                            <StyledTab 
-                                label="Security" 
-                                sx={{ color: activeTab === 2 ? '#FFE600' : 'inherit' }} 
-                            />
-                        </Tabs>
+                            {activeTab === 0 && (
+                                <>
+                                    <SectionTitle variant="h6">User Details</SectionTitle>
+                                    {['fullName', 'email', 'phone', 'mobile', 'address'].map((field) => (
+                                        <Grid container spacing={2} key={field} alignItems="center">
+                                            <Grid item xs={4}>
+                                                <Typography variant="body2" fontWeight="bold">
+                                                    {field.charAt(0).toUpperCase() + field.slice(1)}
+                                                </Typography>
+                                            </Grid>
+                                            <Grid item xs={8}>
+                                                {isEditing ? (
+                                                    <TextField
+                                                        fullWidth
+                                                        variant="outlined"
+                                                        value={editableFields[field]}
+                                                        onChange={(e) =>
+                                                            setEditableFields({ ...editableFields, [field]: e.target.value })
+                                                        }
+                                                        size="small"
+                                                    />
+                                                ) : (
+                                                    <Typography variant="body2" color="text.secondary">
+                                                        {editableFields[field]}
+                                                    </Typography>
+                                                )}
+                                            </Grid>
+                                            <Divider sx={{ my: 2, width: '100%' }} />
+                                        </Grid>
+                                    ))}
+                                    {isEditing && (
+                                        <Box sx={{ mt: 2, textAlign: 'right' }}>
+                                            <CustomButton variant="contained" color="primary" onClick={handleSaveChanges}>
+                                                Save Changes
+                                            </CustomButton>
+                                        </Box>
+                                    )}
+                                </>
+                            )}
 
-                            {/* Profile Tab Content */}
-                            <TabPanel value={activeTab} index={0}>
-                                <Typography variant="h6" fontWeight="bold">Profile Information</Typography>
-                                
-                                {!isEditing ? (
-                                    <>
-                                        <Typography variant="body2"><b>Full Name:</b> {profileData.name}</Typography>
-                                        <Typography variant="body2"><b>Email:</b> {profileData.email}</Typography>
-                                        <Typography variant="body2"><b>Date of Birth:</b> {profileData.dateOfBirth}</Typography>
-                                        <Typography variant="body2"><b>Address:</b> {profileData.address}</Typography>
-                                    </>
-                                ) : (
-                                    <Grid container spacing={2} mt={1}>
-                                        <Grid item xs={6}>
-                                            <Typography variant="body2">Full Name</Typography>
-                                            <TextField fullWidth defaultValue={profileData.name} />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="body2">Email</Typography>
-                                            <TextField fullWidth defaultValue={profileData.email} />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="body2">Date of Birth</Typography>
-                                            <TextField fullWidth type="date" defaultValue={profileData.dateOfBirth} />
-                                        </Grid>
-                                        <Grid item xs={6}>
-                                            <Typography variant="body2">Address</Typography>
-                                            <TextField fullWidth defaultValue={profileData.address} />
-                                        </Grid>
-                                    </Grid>
-                                )}
-
-                                {isEditing ? (
-                                    <Box sx={{ mt: 3 }}>
-                                        <CustomButton onClick={() => setIsEditing(false)}>Save Changes</CustomButton>
-                                        <Button onClick={handleCancelEdit} sx={{ ml: 2 }}>Cancel</Button>
-                                    </Box>
-                                ) : null}
-                            </TabPanel>
-
-                            {/* Preferences Tab Content */}
-                            <TabPanel value={activeTab} index={1}>
-                                <Typography variant="h6" fontWeight="bold">Preferences</Typography>
+                            {activeTab === 1 && (
                                 <Typography variant="body2" color="text.secondary">
-                                    Customize your app preferences here.
+                                    Preferences settings go here.
                                 </Typography>
-                                <Divider sx={{ my: 2 }} />
-                                <Typography variant="body2">Language</Typography>
-                                <TextField fullWidth value="English" />
-                            </TabPanel>
+                            )}
 
-                            {/* Security Tab Content */}
-                            <TabPanel value={activeTab} index={2}>
-                                <Typography variant="h6" fontWeight="bold">Security Settings</Typography>
+                            {activeTab === 2 && (
                                 <Typography variant="body2" color="text.secondary">
-                                    Change your password or manage your security settings.
+                                    Security settings go here.
                                 </Typography>
-                                <Divider sx={{ my: 2 }} />
-                                <Typography variant="body2">Password</Typography>
-                                <TextField fullWidth type="password" value="********" />
-                                <CustomButton >Update Password</CustomButton>
-                            </TabPanel>
+                            )}
                         </CardContent>
                     </CardStyled>
                 </Grid>
-
-                {/* Skills & Assignments Card */}
-                <Grid item xs={12} md={6}>
+                {/* Skills Section */}
+                <Grid  item xs={12}>
                     <CardStyled>
                         <CardContent>
-                            <Typography variant="h6" fontWeight="bold">Assignments & Skills</Typography>
+                            <SectionTitle variant="h6">Assignments & Skills</SectionTitle>
                             <Typography variant="body2" color="text.secondary" mb={2}>
                                 Below are your assigned skills and ongoing assignments.
                             </Typography>
@@ -183,7 +197,7 @@ const UserProfile = () => {
                             <Divider sx={{ my: 2 }} />
 
                             <Typography variant="body2" fontWeight="bold">Skills:</Typography>
-                            <Typography variant="body2" color="text.secondary">React, JavaScript, UI/UX Design</Typography>
+                            <Typography variant="body2" color="text.secondary" mb={2}>React, JavaScript, UI/UX Design</Typography>
 
                             <Divider sx={{ my: 2 }} />
 
@@ -192,6 +206,8 @@ const UserProfile = () => {
                         </CardContent>
                     </CardStyled>
                 </Grid>
+
+                {/* Tabs + Content */}
 
             </Grid>
         </ProfileContainer>

@@ -2,7 +2,7 @@ import axios from 'axios';
 import Cookies from 'js-cookie';  
 const API_URL = 'http://localhost:3000/auth';
 
-// Function to handle login
+
 export const login = async (email: string, password: string) => {
   try {
     const response = await axios.post(`${API_URL}/login`, {
@@ -27,3 +27,9 @@ export const fetchUserProfile = async () => {
   });
   return response.data;
 };
+
+export const logout = () => {
+  Cookies.remove('jwt'); // Remove the JWT token
+  window.location.href = '/login'; // Redirect to login page
+};
+

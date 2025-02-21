@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, TextField, Typography, Card, CardContent, Alert } from '@mui/material';
 import { styled } from '@mui/system';
-import logo from '../../../assets/eylogo.png';
-import CustomButton from '../../ui/CustomButton';
-import { login } from '../../../features/auth/api/authService';
+import logo from '../../assets/eylogo.png';
+import CustomButton from '../../components/ui/CustomButton';
+import { login } from '../../features/auth/api/authService';
 
 const LoginContainer = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -13,27 +13,35 @@ const LoginContainer = styled(Box)(({ theme }) => ({
   width: '100vw',
   height: '100vh',
   backgroundColor: '#222',
+  padding: theme.spacing(2),
+  boxSizing: 'border-box',
   [theme.breakpoints.down('sm')]: {
-    padding: '20px',
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    paddingTop: theme.spacing(4),
   },
 }));
 
 const StyledCard = styled(Card)(({ theme }) => ({
-  width: '90%',
+  width: '100%',
   maxWidth: 400,
-  padding: '32px',
+  padding: theme.spacing(4),
   textAlign: 'center',
   borderRadius: '8px',
   backgroundColor: '#fff',
   [theme.breakpoints.down('sm')]: {
-    padding: '16px',
+    padding: theme.spacing(2),
+    maxWidth: '90%', // Adjust maxWidth for smaller screens
   },
 }));
 
-const Logo = styled('img')({
+const Logo = styled('img')(({ theme }) => ({
   width: '80px',
   marginBottom: '16px',
-});
+  [theme.breakpoints.down('sm')]: {
+    width: '60px', // Adjust logo size for smaller screens
+  },
+}));
 
 const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) => void }) => {
   const navigate = useNavigate();
@@ -45,9 +53,9 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
     try {
       const response = await login(email, password);
       setIsAuthenticated(true);
-      navigate('/dashboard');  // Redirect to dashboard
+      navigate('/dashboard');  
     } catch (error) {
-      setError('Invalid credentials!');  // Set error message
+      setError('Invalid credentials!');  
     }
   };
 
@@ -101,7 +109,9 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
             }}
           />
 
-          <CustomButton onClick={handleLogin}>SIGN IN</CustomButton>
+          <CustomButton onClick={handleLogin} fullWidth>
+            SIGN IN
+          </CustomButton>
         </CardContent>
       </StyledCard>
     </LoginContainer>
