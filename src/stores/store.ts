@@ -1,5 +1,3 @@
-// src/store.ts
-
 import { configureStore } from '@reduxjs/toolkit';
 import projectReducer from '../features/project-management/stores/projectStore';
 

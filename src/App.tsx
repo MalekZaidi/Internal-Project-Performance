@@ -5,6 +5,7 @@ import Login from './pages/auth/Login';
 import DashboardLayout from './components/layouts/dashboard/DashboardLayout';
 import AppRoutes from './routes/AppRoutes';
 import { fetchUserProfile } from './features/auth/api/authService';
+import { ProfileProvider } from './features/auth/api/authContext';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
@@ -30,23 +31,26 @@ const App = () => {
   if (loading) return <h1>Loading...</h1>; 
 
   return (
-    <Router>
-      <Routes>
-        <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-        <Route
-          path="/*"
-          element={
-            isAuthenticated ? (
-              <DashboardLayout>
-                <AppRoutes />
-              </DashboardLayout>
-            ) : (
-              <Navigate to="/login" />
-            )
-          }
-        />
-      </Routes>
-    </Router>
+    <ProfileProvider> 
+  <Router>
+    <Routes>
+      <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
+      <Route
+        path="/*"
+        element={
+          isAuthenticated ? (
+            <DashboardLayout>
+              <AppRoutes />
+            </DashboardLayout>
+          ) : (
+            <Navigate to="/login" />
+          )
+        }
+      />
+    </Routes>
+  </Router>
+</ProfileProvider>
+
   );
 };
 

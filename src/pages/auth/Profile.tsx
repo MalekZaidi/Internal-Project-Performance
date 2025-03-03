@@ -59,6 +59,7 @@ const UserProfile = () => {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<number>(0);
     const [editableFields, setEditableFields] = useState<any>({
+        id :"",
         email: '',
         fullName: '',
         phone: '',
@@ -72,6 +73,8 @@ const UserProfile = () => {
                 const profileData = await fetchUserProfile();
                 setUser(profileData);
                 setEditableFields({
+                    id:profileData._id,
+                    role:profileData.role,  
                     email: profileData.login,
                     fullName: profileData.fullName,
                     phone: '(097) 234-5678',
@@ -134,7 +137,7 @@ const UserProfile = () => {
                             {activeTab === 0 && (
                                 <>
                                     <SectionTitle variant="h6">User Details</SectionTitle>
-                                    {['fullName', 'email', 'phone', 'mobile', 'address'].map((field) => (
+                                    {['id','fullName', 'email','role','phone', 'mobile', 'address'].map((field) => (
                                         <Grid container spacing={2} key={field} alignItems="center">
                                             <Grid item xs={4}>
                                                 <Typography variant="body2" fontWeight="bold">

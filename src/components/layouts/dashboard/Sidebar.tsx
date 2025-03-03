@@ -5,6 +5,7 @@ import {
   Tooltip, Divider, useTheme, useMediaQuery, IconButton
 } from '@mui/material';
 import {  MonetizationOn, Group, Warning, AccountCircle, Assignment, Assessment, Close , Home} from '@mui/icons-material';
+import { useProfile } from '../../../features/auth/hooks/useProfile';
 
 
 interface SidebarProps {
@@ -18,6 +19,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const location = useLocation();
   const [selectedPath, setSelectedPath] = useState(location.pathname);
+  const Profile= useProfile();
 
   const handleItemClick = (path: string) => {
     setSelectedPath(path);

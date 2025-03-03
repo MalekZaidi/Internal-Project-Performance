@@ -40,6 +40,7 @@ interface NavbarProps {
   collapsed : boolean;
 }
 
+
 const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -49,8 +50,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
   const [userRole, setUserRole] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null); // For dropdown menu
-
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   useEffect(() => {
     if (profile) {
       setUserName(profile.fullName); 
@@ -217,8 +217,8 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
       </Toolbar>
 
       {/* Mobile Drawer */}
-      <Drawer anchor="left" open={menuOpen} onClose={() => setMenuOpen(false)}>
-        <List sx={{ width: 250, paddingTop: '64px', backgroundColor: '#333', color: 'white' }}>
+      <Drawer anchor="right" open={menuOpen} onClose={() => setMenuOpen(false)}>
+        <List sx={{ width: 250, paddingTop: '64px', backgroundColor: '#333333 ', color: 'white' }}>
           <Divider />
           <ListItem>
             <Typography variant="h6" sx={{ textAlign: 'center', width: '100%' }}>
@@ -251,6 +251,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             <IconButton color="inherit">
               <SettingsIcon />
             </IconButton>
+          </ListItem>
+          <ListItem onClick={logout}>
+          <ExitToAppIcon sx={{ marginRight: 1, color: 'white' }} />
+          <Typography sx={{ color: 'white' }}>Logout</Typography>     
           </ListItem>
         </List>
       </Drawer>

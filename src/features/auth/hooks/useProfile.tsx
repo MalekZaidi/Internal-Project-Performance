@@ -10,6 +10,7 @@ export const useProfile = () => {
     const fetchProfile = async () => {
       try {
         const data = await fetchUserProfile();
+        
         setProfile(data);
       } catch (error) {
         setError('Failed to fetch profile');
