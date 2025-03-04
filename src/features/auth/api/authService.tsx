@@ -27,9 +27,9 @@ apiClient.interceptors.request.use(
 export const login = async (email: string, password: string) => {
   try {
     const response = await apiClient.post('/login', { login: email, password });
-    const  inFifteenMinutes = new Date(new Date().getTime() + 60 * 60 * 1000);
+    const  inOneHour = new Date(new Date().getTime() + 60 * 60 * 1000);
     const { token } = response.data;
-    Cookies.set('jwt', token, { expires:inFifteenMinutes, path: '/' });
+    Cookies.set('jwt', token, { expires:inOneHour, path: '/' });
 
     return response.data;
   } catch (error: any) {

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Typography, CardContent, Alert } from '@mui/material';
 import CustomButton from '../../components/ui/CustomButton';
 import CustomTextField from '../../components/ui/CustomTextField';
-import CustomStyledCard from '../../components/ui/StyledCard';
+import LoginStyledCard from '../../components/ui/StyledCard';
 import LoginContainer from '../../features/auth/components/login/LoginContainer';
 import CustomLogo from '../../components/ui/CustomLogo'
 import logo from '../../assets/eylogo.png';
@@ -26,8 +26,9 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
   };
 
   return (
+    
     <LoginContainer>
-      <CustomStyledCard>
+      <LoginStyledCard>
         <CustomLogo src={logo} alt="EY Logo" />
 
         <Typography variant="h5" fontWeight="bold" gutterBottom>
@@ -49,11 +50,11 @@ const Login = ({ setIsAuthenticated }: { setIsAuthenticated: (value: boolean) =>
             onChange={(e) => setPassword(e.target.value)}
           />
 
-          <CustomButton onClick={handleLogin} fullWidth>
+          <CustomButton onClick={handleLogin} >
             SIGN IN
           </CustomButton>
         </CardContent>
-      </CustomStyledCard>
+      </LoginStyledCard>
     </LoginContainer>
   );
 };

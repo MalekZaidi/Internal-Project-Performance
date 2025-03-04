@@ -38,6 +38,7 @@ import { logout } from '../../../features/auth/api/authService';
 interface NavbarProps {
   onToggleCollapse: () => void;
   collapsed : boolean;
+  
 }
 
 
@@ -122,7 +123,7 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
                     '& .MuiSvgIcon-root': { color: 'white' },
                   }}
                 >
-                  <MenuItem value="Project1">Project 1</MenuItem>
+                  <MenuItem  value="Project1">Project 1</MenuItem>
                   <MenuItem value="Project2">Project 2</MenuItem>
                   <MenuItem value="Project3">Project 3</MenuItem>
                 </Select>
@@ -217,7 +218,25 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
       </Toolbar>
 
       {/* Mobile Drawer */}
-      <Drawer anchor="right" open={menuOpen} onClose={() => setMenuOpen(false)}>
+      <Drawer anchor="right" open={menuOpen} onClose={() => setMenuOpen(false)}
+      ModalProps={{
+        keepMounted: true, 
+      }}
+        sx={{
+          width: 240,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            boxSizing: 'border-box',
+            backgroundColor: '#333333',
+            color: 'white',
+            paddingTop: '64px', 
+            transition: 'width 0.3s',
+            fontFamily: 'Roboto, sans-serif',
+            overflowX: 'hidden',
+            zIndex: 1200,
+          },
+        }}
+        >
         <List sx={{ width: 250, paddingTop: '64px', backgroundColor: '#333333 ', color: 'white' }}>
           <Divider />
           <ListItem>

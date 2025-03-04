@@ -41,6 +41,9 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
 
   return (
     <Drawer
+    ModalProps={{
+      keepMounted: true, 
+    }}
       variant={isMobile ? 'temporary' : 'persistent'}
       open={isMobile ? isOpen : true} 
       onClose={onClose} 

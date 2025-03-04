@@ -14,8 +14,8 @@ const StyledCard = styled(Card)(({ theme }) => ({
   },
 }));
 
-const CustomStyledCard = (props: CardProps) => {
+const LoginStyledCard = (props: CardProps) => {
   return <StyledCard {...props} />;
 };
 
-export default CustomStyledCard;
+export default LoginStyledCard;
