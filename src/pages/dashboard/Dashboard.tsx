@@ -12,6 +12,7 @@ import {
   LinearScale,
 } from 'chart.js';
 import BarChart from '../../components/ui/BarChart';
+import { ContentLayout } from '../../components/layouts/dashboard/ContentLayout';
 
 
 ChartJS.register(Title, Tooltip, Legend, ArcElement, CategoryScale, LinearScale);
@@ -53,12 +54,13 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Box sx={{ width: '100%', padding: '24px', boxSizing: 'border-box' }}>
+
+  <Box sx={{ width: '100%', padding: '24px', boxSizing: 'border-box' }}>
       <Typography variant="h4" gutterBottom>
         Dashboard
       </Typography>
-      <Grid container spacing={3}>
-        <Grid display={'flex'} item xs={12} sm={6} md={3}>
+      <Grid display={'flex'} container spacing={3}>
+        <Grid  item xs={12} sm={6} md={3}>
           <Card>
             <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton sx={{ backgroundColor: '#e0e0e0', padding: 2 }}>
@@ -104,7 +106,7 @@ const Dashboard: React.FC = () => {
           </Card>
         </Grid>
 
-        <Grid display={'flex'} item xs={12} sm={6} md={3}>
+        <Grid display={'flex'}  item xs={12} sm={6} md={3}>
           <Card>
             <CardContent sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton sx={{ backgroundColor: '#ff9800', padding: 2 }}>
@@ -144,6 +146,7 @@ const Dashboard: React.FC = () => {
 
       </Grid>
     </Box>
+   
   );
 };
 

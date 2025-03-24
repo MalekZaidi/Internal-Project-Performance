@@ -14,7 +14,7 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<h1>Loading...</h1>}>
       <Routes>
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Dashboard />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/projects" element={<Projects />} />
         <Route path="/projects/add" element={<AddProject />} /> 

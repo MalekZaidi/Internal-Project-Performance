@@ -1,10 +1,15 @@
 import { configureStore } from '@reduxjs/toolkit';
-import projectReducer from '../features/project-management/stores/projectStore';
+import { apiSlice } from '../features/auth/api/apiSlice';
+import authReducer from '../features/auth/api/authSlice';
 
-const store = configureStore({
+export const store = configureStore({
   reducer: {
-    projects: projectReducer,
+    [apiSlice.reducerPath]: apiSlice.reducer,
+    auth: authReducer,
   },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(apiSlice.middleware),
+  devTools: true,
 });
 
-export default store;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;

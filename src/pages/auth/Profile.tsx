@@ -1,57 +1,63 @@
 import { useEffect, useState } from 'react';
-import { 
-    Box, Typography, Avatar, Card, CardContent, CircularProgress, 
-    Grid, TextField, Tabs, Tab, Divider 
+import {
+    Box, Typography, Avatar, Card, CardContent, CircularProgress,
+    Grid, TextField, Tabs, Tab, Divider
 } from '@mui/material';
 import { styled } from '@mui/system';
 import { fetchUserProfile } from '../../features/auth/api/authService';
 import CustomButton from '../../components/ui/CustomButton';
+import { ContentLayout } from '../../components/layouts/dashboard/ContentLayout';
 
-const ProfileContainer = styled(Box)({
-    width: '100vw',
-    minHeight: '100vh',
-    backgroundColor: '#F5F5F5',
-    padding: '40px',
-    display: 'flex',
-    justifyContent: 'center',
-});
-
-const CardStyled = styled(Card)({
+// Styled Components
+const CardStyled = styled(Card)(({ theme }) => ({
     borderRadius: '12px',
     boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
     overflow: 'hidden',
     padding: '20px',
-});
+    [theme.breakpoints.down('sm')]: {
+        padding: '10px',
+    },
+}));
 
-const AvatarStyled = styled(Avatar)({
+const AvatarStyled = styled(Avatar)(({ theme }) => ({
     width: 120,
     height: 120,
     border: '4px solid #FFE600',
-});
+    [theme.breakpoints.down('sm')]: {
+        width: 80,
+        height: 80,
+    },
+}));
 
-const SectionTitle = styled(Typography)({
+const SectionTitle = styled(Typography)(({ theme }) => ({
     fontWeight: 'bold',
     marginBottom: '12px',
     fontSize: '1.1rem',
-});
+    [theme.breakpoints.down('sm')]: {
+        fontSize: '1rem',
+    },
+}));
 
-const TabsStyled = styled(Tabs)({
+const TabsStyled = styled(Tabs)(({ theme }) => ({
     borderBottom: '2px solid #ddd',
     '& .MuiTabs-indicator': {
         backgroundColor: '#FFE600',
         height: '3px',
         borderRadius: '3px',
     },
-});
+}));
 
-const TabStyled = styled(Tab)({
+const TabStyled = styled(Tab)(({ theme }) => ({
     textTransform: 'none',
     fontWeight: 'bold',
     fontSize: '1rem',
     '&.Mui-selected': {
         color: '#333',
     },
-});
+    [theme.breakpoints.down('sm')]: {
+        fontSize: '0.9rem',
+    },
+}));
 
 const UserProfile = () => {
     const [user, setUser] = useState<any>(null);
@@ -59,7 +65,7 @@ const UserProfile = () => {
     const [isEditing, setIsEditing] = useState<boolean>(false);
     const [activeTab, setActiveTab] = useState<number>(0);
     const [editableFields, setEditableFields] = useState<any>({
-        id :"",
+        id: "",
         email: '',
         fullName: '',
         phone: '',
@@ -73,8 +79,8 @@ const UserProfile = () => {
                 const profileData = await fetchUserProfile();
                 setUser(profileData);
                 setEditableFields({
-                    id:profileData._id,
-                    role:profileData.role,  
+                    id: profileData._id,
+                    role: profileData.role,
                     email: profileData.login,
                     fullName: profileData.fullName,
                     phone: '(097) 234-5678',
@@ -97,15 +103,17 @@ const UserProfile = () => {
 
     if (loading) {
         return (
-            <ProfileContainer>
-                <CircularProgress />
-            </ProfileContainer>
+            <ContentLayout>
+                <Box display="flex" justifyContent="center" alignItems="center" minHeight="100vh">
+                    <CircularProgress />
+                </Box>
+            </ContentLayout>
         );
     }
 
     return (
-        <ProfileContainer>
-            <Grid container spacing={4} maxWidth="1000px">
+        <ContentLayout>
+            <Grid container spacing={4} maxWidth="1000px" width="100%" margin="0 auto">
                 {/* Profile Info (Avatar + Details) */}
                 <Grid item xs={12}>
                     <CardStyled>
@@ -125,9 +133,10 @@ const UserProfile = () => {
                     </CardStyled>
                 </Grid>
 
+                {/* Tabs Section */}
                 <Grid item xs={12}>
                     <CardStyled>
-                        <TabsStyled value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} centered>
+                        <TabsStyled value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)} variant="scrollable" scrollButtons>
                             <TabStyled label="Profile" />
                             <TabStyled label="Preferences" />
                             <TabStyled label="Security" />
@@ -137,14 +146,14 @@ const UserProfile = () => {
                             {activeTab === 0 && (
                                 <>
                                     <SectionTitle variant="h6">User Details</SectionTitle>
-                                    {['id','fullName', 'email','role','phone', 'mobile', 'address'].map((field) => (
+                                    {['id', 'fullName', 'email', 'role', 'phone', 'mobile', 'address'].map((field) => (
                                         <Grid container spacing={2} key={field} alignItems="center">
-                                            <Grid item xs={4}>
+                                            <Grid item xs={12} sm={4}>
                                                 <Typography variant="body2" fontWeight="bold">
                                                     {field.charAt(0).toUpperCase() + field.slice(1)}
                                                 </Typography>
                                             </Grid>
-                                            <Grid item xs={8}>
+                                            <Grid item xs={12} sm={8}>
                                                 {isEditing ? (
                                                     <TextField
                                                         fullWidth
@@ -188,8 +197,9 @@ const UserProfile = () => {
                         </CardContent>
                     </CardStyled>
                 </Grid>
+
                 {/* Skills Section */}
-                <Grid  item xs={12}>
+                <Grid item xs={12}>
                     <CardStyled>
                         <CardContent>
                             <SectionTitle variant="h6">Assignments & Skills</SectionTitle>
@@ -209,11 +219,8 @@ const UserProfile = () => {
                         </CardContent>
                     </CardStyled>
                 </Grid>
-
-                {/* Tabs + Content */}
-
             </Grid>
-        </ProfileContainer>
+        </ContentLayout>
     );
 };
 

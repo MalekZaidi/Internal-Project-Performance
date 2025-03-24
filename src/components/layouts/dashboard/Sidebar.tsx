@@ -5,7 +5,6 @@ import {
   Tooltip, Divider, useTheme, useMediaQuery, IconButton
 } from '@mui/material';
 import {  MonetizationOn, Group, Warning, AccountCircle, Assignment, Assessment, Close , Home} from '@mui/icons-material';
-import { useProfile } from '../../../features/auth/hooks/useProfile';
 
 
 interface SidebarProps {
@@ -19,7 +18,6 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const location = useLocation();
   const [selectedPath, setSelectedPath] = useState(location.pathname);
-  const Profile= useProfile();
 
   const handleItemClick = (path: string) => {
     setSelectedPath(path);
@@ -27,7 +25,7 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
   };
 
   const menuItems = [
-    { text: 'Dashboard', icon: <Home />, path: '/dashboard' },
+    { text: 'Dashboard', icon: <Home />, path: '/' },
     { text: 'Projects', icon: <Assignment />, path: '/projects' },
     { text: 'Budgets', icon: <MonetizationOn />, path: '/budgets' },
     { text: 'Resources', icon: <Group />, path: '/resources' },
@@ -48,10 +46,10 @@ const Sidebar: React.FC<SidebarProps> = ({ collapsed, onClose, isOpen }) => {
       open={isMobile ? isOpen : true} 
       onClose={onClose} 
       sx={{
-        width: collapsed ? 60 : 240,
+        width: collapsed ? 53 : 217,
         flexShrink: 0,
         '& .MuiDrawer-paper': {
-          width: collapsed ? 60 : 240,
+          width: collapsed ? 53 : 217,
           boxSizing: 'border-box',
           backgroundColor: '#333333',
           color: 'white',

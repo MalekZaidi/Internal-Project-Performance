@@ -57,3 +57,42 @@
   opacity: 0;
   transition: opacity 300ms;
 }
+/* Global CSS or in a styled component */
+@media (max-width: 768px) {
+  /* Adjust styles for tablets and smaller devices */
+  .content-layout {
+    padding: 8px; /* Reduce padding on smaller screens */
+  }
+}
+
+@media (max-width: 480px) {
+  /* Adjust styles for mobile devices */
+  .content-layout {
+    padding: 4px; /* Further reduce padding on very small screens */
+    box-shadow: none; /* Remove shadow for a cleaner look on mobile */
+  }
+}
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(to right, #ff7e5f, #feb47b);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+* {
+  box-sizing: border-box;
+}
