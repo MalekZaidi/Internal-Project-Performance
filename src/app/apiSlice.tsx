@@ -1,5 +1,5 @@
 import { apiSlice } from "../features/auth/api/apiSlice"; 
-import { setCredentials, logOut } from '../features/auth/api/authSlice';
+// import { setCredentials, logOut } from '../features/auth/api/authSlice';
 
 export const authApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
@@ -18,7 +18,7 @@ export const authApiSlice = apiSlice.injectEndpoints({
       async onQueryStarted(_, { dispatch, queryFulfilled }) {
         try {
           await queryFulfilled;
-          dispatch(logOut());
+          // dispatch(logOut());
         } catch (err) {
           console.log(err);
         }

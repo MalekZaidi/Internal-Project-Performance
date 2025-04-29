@@ -96,3 +96,94 @@ body {
 * {
   box-sizing: border-box;
 }
+/* Container for centering the spinner */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #000; /* Black background */
+}
+
+.spinner {
+  position: relative;
+  width: 200px;
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  opacity: 0;
+  background-color: #FFCD00; /* Default EY color */
+}
+
+.ball-1 { background-color: #FFCD00; }
+.ball-2 { background-color: #2196F3; }
+.ball-3 { background-color: #03A9F4; }
+.ball-4 { background-color: #00BCD4; }
+.ball-5 { background-color: #009688; }
+.ball-6 { background-color: #4CAF50; }
+.ball-7 { background-color: #8BC34A; }
+.ball-8 { background-color: #CDDC39; }
+
+.spinner.start .ball {
+  animation: circulate 10s infinite;
+}
+
+@keyframes circulate {
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+/* Specific animations to form the EY logo */
+.spinner.start .ball-1 {
+  --x: -50; --y: -80;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.1s;
+}
+.spinner.start .ball-2 {
+  --x: 0; --y: -80;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.2s;
+}
+.spinner.start .ball-3 {
+  --x: 50; --y: -50;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.3s;
+}
+.spinner.start .ball-4 {
+  --x: 50; --y: 50;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.4s;
+}
+.spinner.start .ball-5 {
+  --x: -50; --y: 50;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.5s;
+}
+.spinner.start .ball-6 {
+  --x: -80; --y: -30;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.6s;
+}
+.spinner.start .ball-7 {
+  --x: -30; --y: -80;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.7s;
+}
+.spinner.start .ball-8 {
+  --x: 30; --y: 80;
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.8s;
+}
+
+@keyframes moveToPosition {
+  0% { transform: translate(0, 0); }
+  100% { transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)); }
+}

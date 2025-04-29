@@ -83,3 +83,57 @@ button:focus-visible {
   opacity: 0;
   transition: opacity 300ms;
 }
+/* Full-screen container */
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #000; /* Black background */
+}
+
+.spinner {
+  position: relative;
+  width: 200px;
+  height: 200px;
+}
+
+.ball {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  opacity: 0;
+  background-color: #FFCD00; /* Default EY color */
+}
+
+/* Default animation for balls to circulate */
+.spinner.start .ball {
+  animation: circulate 2s infinite;
+}
+
+@keyframes circulate {
+  0% { transform: rotate(0deg) translateX(60px) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(60px) rotate(-360deg); }
+}
+
+/* Formation of the EY logo */
+.spinner.start .ball-1 {
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.1s;
+}
+.spinner.start .ball-2 {
+  animation: moveToPosition 2s ease forwards;
+  animation-delay: 0.2s;
+}
+/* Repeat for other balls with precise positions */
+
+@keyframes moveToPosition {
+  0% { transform: translate(0, 0); opacity: 1; }
+  100% { transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)); opacity: 1; }
+}
+
+/* Ensure all balls form the EY logo accurately */
+.ball-1 { --x: -50; --y: -80; } /* Example position for "E" */
+.ball-2 { --x: 0; --y: -80; }
+/* Continue with other positions for accurate logo formation */

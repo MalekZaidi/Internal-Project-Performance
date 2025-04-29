@@ -32,7 +32,7 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
         }}
       >
         <Navbar onToggleCollapse={handleToggleCollapse} collapsed={collapsed} />
-        <Box
+                <Box
           component="main"
           sx={{
             flexGrow: 1,
@@ -41,10 +41,15 @@ const DashboardLayout = ({ children }: { children: React.ReactNode }) => {
             marginTop: '64px',
             overflow: 'auto',
             width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
           }}
         >
-          {children}
+          <Box sx={{ width: '100%', flexGrow: 1 }}>
+            {children}
+          </Box>
         </Box>
+
       </Box>
     </Box>
   );

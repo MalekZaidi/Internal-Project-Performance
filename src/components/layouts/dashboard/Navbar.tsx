@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState } from 'react';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle'; // Import the icon
 import {
   AppBar,
@@ -31,33 +31,38 @@ import {
   ArrowDropDown as ArrowDropDownIcon,
 } from '@mui/icons-material';
 import logo from '../../../assets/logo.png';
-import { useProfile } from '../../../features/auth/hooks/useProfile';
 import ExitToAppIcon from '@mui/icons-material/ExitToApp';
 import { logout } from '../../../features/auth/api/authService';
+import { useSelector } from "react-redux";
+import { RootState } from "../../../stores/store";
+import { styled } from '@mui/styles';
+import ProjectSelector from '../../ui/ProjectSelector';
+import Cookies from "js-cookie";
+
+import { io, Socket } from 'socket.io-client';
+import CustomButton from '../../ui/CustomButton';
 
 interface NavbarProps {
   onToggleCollapse: () => void;
   collapsed : boolean;
   
 }
-
+interface Notification {
+  type: string;
+  message: string;
+  data?: any;
+  timestamp: Date;
+}
 
 const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [project, setProject] = useState('');
-  const { profile } = useProfile();
-  const [userName, setUserName] = useState('');
-  const [userRole, setUserRole] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  useEffect(() => {
-    if (profile) {
-      setUserName(profile.fullName); 
-      setUserRole(profile.role);
-    }
-  }, [profile]);
+  const { user } = useSelector((state: RootState) => state.auth);
+
 
   const handleProjectChange = (event: SelectChangeEvent) => {
     setProject(event.target.value as string);
@@ -78,6 +83,125 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
       setAnchorEl(event.currentTarget); 
     }
   };
+
+  
+// Notifications 
+
+
+const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationMenuAnchor, setNotificationMenuAnchor] = useState<null | HTMLElement>(null);
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  // Navbar.tsx
+ // Navbar.tsx
+useEffect(() => {
+  const jwt = Cookies.get('jwt');
+  if (!jwt) return;
+
+  const newSocket = io(import.meta.env.VITE_BACK_API_WS_URL, {
+    path: '/ws',
+    transports: ['websocket'],
+    auth: { token: jwt },
+    reconnectionAttempts: 5,
+    reconnectionDelay: 3000,
+  });
+
+  newSocket.on('connect', () => {
+    console.log('WebSocket connected:', newSocket.id);
+  });
+
+  newSocket.on('disconnect', (reason) => {
+    console.log('WebSocket disconnected:', reason);
+  });
+
+  newSocket.on('connect_error', (err) => {
+    console.error('Connection error:', err.message);
+  });
+
+  newSocket.on('notification', (payload) => {
+    console.log('Received notification:', payload);
+    setNotifications(prev => [{ ...payload, timestamp: new Date() }, ...prev]);
+    setUnreadCount(prev => prev + 1);
+  });
+
+  setSocket(newSocket);
+
+  return () => {
+    newSocket.close();
+  };
+}, []);
+
+
+  const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
+    setNotificationMenuAnchor(event.currentTarget);
+    setUnreadCount(0); 
+  };
+
+  const notificationIcon = (
+    <IconButton color="inherit" onClick={handleNotificationClick}>
+      <Badge badgeContent={unreadCount} color="error">
+        <NotificationsIcon />
+      </Badge>
+    </IconButton>
+  );
+
+  const notificationMenu = (
+    <Menu
+      anchorEl={notificationMenuAnchor}
+      open={Boolean(notificationMenuAnchor)}
+      onClose={() => setNotificationMenuAnchor(null)}
+      PaperProps={{
+        style: {
+          maxHeight: '70vh',
+          width: '350px',
+        },
+      }}
+    >
+      <Typography variant="h6" sx={{ p: 2, fontWeight: 600 }}>
+        Notifications
+      </Typography>
+      <Divider />
+      {notifications.length === 0 ? (
+        <Typography variant="body2" sx={{ p: 2, color: 'text.secondary' }}>
+          No new notifications
+        </Typography>
+      ) : (
+        notifications.map((notification, index) => (
+          <React.Fragment key={index}>
+            <MenuItem 
+              sx={{ 
+                whiteSpace: 'normal',
+                alignItems: 'flex-start',
+                borderLeft: notification.type === 'project_assigned' ? '4px solid #4caf50' : '4px solid #2196f3'
+              }}
+            >
+              <Box sx={{ width: '100%' }}>
+                <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                  {notification.message}
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {new Date(notification.timestamp).toLocaleTimeString()}
+                </Typography>
+                {notification.data?.projectId && (
+                  <CustomButton 
+                    size="small" 
+                    sx={{ mt: 1 }}
+                    onClick={() => window.location.href = `/projects/${notification.data.projectId}`}
+                  >
+                    View Project
+                  </CustomButton>
+                )}
+              </Box>
+            </MenuItem>
+            {index < notifications.length - 1 && <Divider />}
+          </React.Fragment>
+        ))
+      )}
+    </Menu>
+  );
+
+
 
   return (
     <AppBar position="fixed" sx={{ backgroundColor: '#333', zIndex: 1300 }}>
@@ -107,31 +231,14 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
         {/* Desktop View */}
         {!isMobile && (
           <>
-            <Box sx={{ display: 'flex', alignItems: 'center', minWidth: 0 }}>
-              <Typography variant="body1" sx={{ color: 'white', mr: 1 }}>
-                Project:
-              </Typography>
-              <FormControl variant="outlined" size="small" sx={{ minWidth: 120 }}>
-                <InputLabel sx={{ color: 'white' }}>Select</InputLabel>
-                <Select
-                  value={project}
-                  onChange={handleProjectChange}
-                  label="Select"
-                  sx={{
-                    color: 'white',
-                    '& .MuiOutlinedInput-notchedOutline': { borderColor: 'white' },
-                    '& .MuiSvgIcon-root': { color: 'white' },
-                  }}
-                >
-                  <MenuItem  value="Project1">Project 1</MenuItem>
-                  <MenuItem value="Project2">Project 2</MenuItem>
-                  <MenuItem value="Project3">Project 3</MenuItem>
-                </Select>
-              </FormControl>
-            </Box>
+
+
+          <ProjectSelector/>
+         
 
             {/* Search Bar */}
-            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#333', borderRadius: 1, width: 280, mx: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#333', borderRadius: 1, width: 280, mx: 2,  //  border: "3px solid rgba(255,255,255,0.2)", // thin subtle border
+ }}>
               <TextField
                 variant="standard"
                 placeholder="Search..."
@@ -140,6 +247,9 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
                 sx={{
                   width: '100%',
                   '& input': { padding: '4px 0', color: 'white' },
+                  border: 'white'
+
+                
                 }}
                 InputProps={{
                   disableUnderline: true,
@@ -158,11 +268,8 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
             </Box>
 
             {/* Notifications & Settings */}
-            <IconButton color="inherit">
-              <Badge badgeContent={4} color="error">
-                <NotificationsIcon />
-              </Badge>
-            </IconButton>
+            {notificationIcon}
+            {notificationMenu}
             <IconButton color="inherit">
               <SettingsIcon />
             </IconButton>
@@ -173,10 +280,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', mx: 2 }}>
             <Typography variant="body1" sx={{ fontWeight: 'bold', color: 'white' }}>
-              {userName}
+              {user.fullName}
             </Typography>
             <Typography variant="body2" sx={{ color: '#ccc' }}>
-              {userRole}
+              {user.role}
             </Typography>
           </Box>
           <Avatar sx={{ width: 40, height: 40, cursor: 'pointer' }} onClick={handleAvatarClick} />
@@ -207,11 +314,10 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
               <AccountCircleIcon sx={{ marginRight: 1, color: '#333333' }} />
               Profile
             </MenuItem>
-
-            <MenuItem onClick={logout}>
-              <ExitToAppIcon sx={{ marginRight: 1, color: '#333333' }} />
-              <Typography sx={{ color: '#333333' }}>Logout</Typography>
-            </MenuItem>
+              <MenuItem onClick={logout}>
+                <ExitToAppIcon sx={{ marginRight: 1, color: '#333333' }} />
+                <Typography sx={{ color: '#333333' }}>Logout</Typography>
+              </MenuItem>
           </Menu>
 
 

@@ -1,56 +1,48 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'; 
-import { useEffect, useState } from 'react';
-import Cookies from 'js-cookie'; 
-import Login from './pages/auth/Login';
-import DashboardLayout from './components/layouts/dashboard/DashboardLayout';
-import AppRoutes from './routes/AppRoutes';
-import { fetchUserProfile } from './features/auth/api/authService';
-import { ProfileProvider } from './features/auth/api/authContext';
-
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
+import { RootState, AppDispatch } from "./stores/store";
+import { fetchUserProfile } from "./features/auth/api/authSlice";
+import Login from "./pages/auth/Login";
+import DashboardLayout from "./components/layouts/dashboard/DashboardLayout";
+import AppRoutes from "./routes/AppRoutes";
 const App = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
-  const [loading, setLoading] = useState<boolean>(true);
+  const dispatch = useDispatch<AppDispatch>();
+  const { user,  token } = useSelector((state: RootState) => state.auth);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
-    const checkAuth = async () => {
-      const token = Cookies.get('jwt'); 
-      if (token) {
-        try {
-          await fetchUserProfile(); 
-          setIsAuthenticated(true);
-        } catch (error) {
-          setIsAuthenticated(false);
-          Cookies.remove('jwt'); 
-        }
-      }
-      setLoading(false);
-    };
-    checkAuth();
-  }, []);
+    if (token && !user) {
+      dispatch(fetchUserProfile()).finally(() => setInitialLoad(false));
+    } else {
+      setInitialLoad(false);
+    }
+  }, [dispatch, token, user]);
+  
 
-  if (loading) return <h1>Loading...</h1>; 
+   if (initialLoad) return <h1> Waiting</h1> ;
 
   return (
-    <ProfileProvider> 
-  <Router>
-    <Routes>
-      <Route path="/login" element={<Login setIsAuthenticated={setIsAuthenticated} />} />
-      <Route
-        path="/*"
-        element={
-          isAuthenticated ? (
-            <DashboardLayout>
-              <AppRoutes />
-            </DashboardLayout>
-          ) : (
-            <Navigate to="/login" />
-          )
-        }
-      />
-    </Routes>
-  </Router>
-</ProfileProvider>
-
+    <Router>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={user ? <Navigate to="/" /> : <Login />} 
+        />
+        <Route
+          path="/*"
+          element={
+            user || token ? ( 
+              <DashboardLayout>
+                <AppRoutes />
+              </DashboardLayout>
+            ) : (
+              <Navigate to="/login" />
+            )
+          }
+        />
+      </Routes>
+    </Router>
   );
 };
 

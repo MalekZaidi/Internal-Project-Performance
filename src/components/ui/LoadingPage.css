@@ -1,0 +1,75 @@
+/* Fullscreen responsive container */
+.loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100vw; /* Full width of the viewport */
+    height: 100vh; /* Full height of the viewport */
+    background-color: #000; /* Black background for contrast */
+    overflow: hidden;
+  }
+  
+  .spinner {
+    position: relative;
+    width: 40vmin; /* Responsive size based on viewport */
+    height: 40vmin;
+  }
+  
+  .ball {
+    position: absolute;
+    width: 8%; /* Ball size relative to spinner */
+    height: 8%;
+    border-radius: 50%;
+    opacity: 0;
+    background-color: #FFCD00; /* EY brand color */
+  }
+  
+  /* Circulating animation for balls */
+  .spinner.start .ball {
+    animation: circulate 2s ease-in-out infinite, moveToPosition 1.5s ease forwards;
+  }
+  
+  @keyframes circulate {
+    0% { transform: rotate(0deg) translateX(20vmin) rotate(0deg); }
+    100% { transform: rotate(360deg) translateX(20vmin) rotate(-360deg); }
+  }
+  
+  /* Balls transition into EY logo positions after the circulate animation */
+  .spinner.start .ball-1 {
+    animation-delay: 0s, 2s; /* First animation (rotate), then position */
+    transform: translate(-15vmin, -10vmin); /* Position for 'E' letter */
+  }
+  .spinner.start .ball-2 {
+    animation-delay: 0.2s, 2.2s;
+    transform: translate(0vmin, -10vmin); /* Position for 'E' letter */
+  }
+  .spinner.start .ball-3 {
+    animation-delay: 0.4s, 2.4s;
+    transform: translate(15vmin, -5vmin); /* Position for 'Y' letter */
+  }
+  .spinner.start .ball-4 {
+    animation-delay: 0.6s, 2.6s;
+    transform: translate(15vmin, 5vmin); /* Position for 'Y' letter */
+  }
+  .spinner.start .ball-5 {
+    animation-delay: 0.8s, 2.8s;
+    transform: translate(-15vmin, 5vmin); /* Position for 'E' letter */
+  }
+  .spinner.start .ball-6 {
+    animation-delay: 1s, 3s;
+    transform: translate(-10vmin, 0vmin); /* Center connection for EY */
+  }
+  .spinner.start .ball-7 {
+    animation-delay: 1.2s, 3.2s;
+    transform: translate(-5vmin, -5vmin); /* Subtle alignment for EY */
+  }
+  .spinner.start .ball-8 {
+    animation-delay: 1.4s, 3.4s;
+    transform: translate(10vmin, 10vmin); /* Subtle alignment for EY */
+  }
+  
+  @keyframes moveToPosition {
+    0% { opacity: 0; transform: translate(0, 0); }
+    100% { opacity: 1; }
+  }
+  
