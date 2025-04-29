@@ -20,6 +20,8 @@ import {
   AvatarGroup,
   Tooltip,
   Badge,
+  styled,
+  LinearProgress,
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -32,6 +34,11 @@ import { format, parse, startOfWeek, getDay, addWeeks, addDays, addMonths } from
 import { enUS } from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import CodeIcon from '@mui/icons-material/Code';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TaskAltIcon from '@mui/icons-material/TaskAlt';
+import SpeedIcon from '@mui/icons-material/Speed';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+
 const locales = {
   'en-US': enUS,
 };
@@ -107,6 +114,50 @@ const handleViewChange = useCallback((newView: View) => {
       </ContentLayout>
     );
   }
+  interface MetricCardProps {
+    icon: React.ReactNode;
+    title: string;
+    value: string;
+    color: string;
+  } 
+  const KpiCard = styled(Paper)(({ theme }) => ({
+    padding: theme.spacing(3),
+    position: 'relative',
+    overflow: 'hidden',
+    transition: 'all 0.3s ease',
+    '&:hover': {
+      transform: 'translateY(-5px)',
+      boxShadow: theme.shadows[4],
+    },
+    '&:before': {
+      content: '""',
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      width: '4px',
+      height: '100%',
+      backgroundColor: '#333333',
+    },
+  }));
+
+  const calculateTimelineProgress = (startDateStr: string, endDateStr: string) => {
+    const now = new Date();
+    const start = new Date(startDateStr);
+    const end = new Date(endDateStr);
+    
+    // Handle invalid dates
+    if (isNaN(start.getTime())) return 0;
+    if (isNaN(end.getTime())) return 0;
+    
+    const totalDuration = end.getTime() - start.getTime();
+    const elapsed = now.getTime() - start.getTime();
+    
+    if (elapsed < 0) return 0; // Project hasn't started
+    if (now > end) return 100; // Project completed
+    
+    return Math.min(100, (elapsed / totalDuration) * 100);
+  };
+  const timelineProgress = calculateTimelineProgress(project.startDate, project.endDate);
 
   const statusColor = {
     Started: 'primary',
@@ -172,6 +223,23 @@ const getGoals = () => {
   return [];
 };
 
+const MetricCard: React.FC<MetricCardProps> = ({ icon, title, value, color }) => (
+  <Paper sx={{
+    p: 2,
+    height: '100%',
+    borderLeft: `4px solid ${color}`,
+    transition: '0.3s',
+    '&:hover': { transform: 'translateY(-2px)' }
+  }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Box sx={{ color }}>{icon}</Box>
+      <Box>
+        <Typography variant="subtitle2" color="text.secondary">{title}</Typography>
+        <Typography variant="h5" fontWeight={600}>{value}</Typography>
+      </Box>
+    </Box>
+  </Paper>
+);
 
 const goals = getGoals();
 
@@ -210,6 +278,139 @@ const goals = getGoals();
               variant="outlined"
             />
           </Stack>
+
+
+          <Box sx={{ mb: 4 }}>
+          <Typography variant="h5" fontWeight={600} sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <TrendingUpIcon fontSize="medium" />
+            Project KPIs
+          </Typography>
+          
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={3}>
+              <KpiCard elevation={2}>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <AccountBalanceWalletIcon fontSize="large" color="primary" />
+                    <Box>
+                      <Typography variant="subtitle1" color="text.secondary">Budget Utilization</Typography>
+                      <Typography variant="h5" fontWeight={600}>
+                        ${(project.initialBudget * 0.65).toLocaleString()} 
+                        <Typography component="span" variant="body2" color="text.secondary">
+                          / ${project.initialBudget.toLocaleString()}
+                        </Typography>
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={65} 
+                    sx={{ height: 8, borderRadius: 4 }}
+                    color="primary"
+                  />
+                </Stack>
+              </KpiCard>
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <KpiCard elevation={2}>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <DateRange fontSize="large" color="secondary" />
+                    <Box>
+                      <Typography variant="subtitle1" color="text.secondary">Timeline Progress</Typography>
+                      <Typography variant="h5" fontWeight={600}>
+                      {timelineProgress.toFixed(1)}%
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={timelineProgress} 
+                    sx={{ height: 8, borderRadius: 4 }}
+                    color="secondary"
+                  />
+                </Stack>
+              </KpiCard>
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <KpiCard elevation={2}>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <TaskAltIcon fontSize="large" color="success" />
+                    <Box>
+                      <Typography variant="subtitle1" color="text.secondary">Tasks Completed</Typography>
+                      <Typography variant="h5" fontWeight={600}>
+                        127<Typography component="span" variant="body2" color="text.secondary">/200</Typography>
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={(127/200)*100} 
+                    sx={{ height: 8, borderRadius: 4 }}
+                    color="success"
+                  />
+                </Stack>
+              </KpiCard>
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <KpiCard elevation={2}>
+                <Stack spacing={1}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                    <SpeedIcon fontSize="large" color="warning" />
+                    <Box>
+                      <Typography variant="subtitle1" color="text.secondary">Team Velocity</Typography>
+                      <Typography variant="h5" fontWeight={600}>
+                        34<Typography component="span" variant="body2" color="text.secondary"> pts/wk</Typography>
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <LinearProgress 
+                    variant="determinate" 
+                    value={75} 
+                    sx={{ height: 8, borderRadius: 4 }}
+                    color="warning"
+                  />
+                </Stack>
+              </KpiCard>
+            </Grid>
+                  <Grid item xs={12} md={3}>
+                            <KpiCard elevation={2}>
+                              <Stack spacing={1}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+                                  <People fontSize="large" color="success" />
+                                  <Box>
+                                    <Typography variant="subtitle1" color="text.secondary">
+                                      Team Members
+                                    </Typography>
+                                    <Typography variant="h5" fontWeight={600}>
+                                      {project.assignedTeamMembers?.length || 0}
+                                      <Typography component="span" variant="body2" color="text.secondary">
+                                        {project.assignedTeamMembers?.length === 1 ? ' member' : ' members'}
+                                      </Typography>
+                                    </Typography>
+                                  </Box>
+                                </Box>
+                                <LinearProgress 
+                                  variant="determinate" 
+                                  value={100} 
+                                  sx={{ 
+                                    height: 8, 
+                                    borderRadius: 4,
+                                    backgroundColor: theme.palette.grey[200],
+                                    '& .MuiLinearProgress-bar': {
+                                      backgroundColor: theme.palette.warning.main
+                                    }
+                                  }}
+                                />
+                              </Stack>
+                            </KpiCard>
+                          </Grid>
+                            </Grid>
+        </Box>
                     {/* Team Assignment Section */}
                     <Box sx={{ mb: 2 }}>
             <Box 

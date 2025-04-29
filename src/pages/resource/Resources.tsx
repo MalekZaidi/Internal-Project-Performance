@@ -84,7 +84,7 @@ const getComparativeAnalysis = async (projectId: string) => {
           3. Highlight weaknesses with ⚠️ 
           4. Add relevant emojis for skills/roles
           5. Final suitability verdict with ★★★★★
-          Keep under 200 words.`
+          Keep under 300 words.`
         }, {
           role: 'user',
           content: `Project: ${project?.projectName}\nSkills: ${project?.skills?.map(s => s.name).join(', ')}\n` +

@@ -27,7 +27,7 @@ import {
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchUsers, selectUsers } from '../../features/users/api/usersSlice';
+import { deleteUser, fetchUsers, selectUsers } from '../../features/users/api/usersSlice';
 import { AppDispatch, RootState } from '../../stores/store';
 import CustomButton from '../../components/ui/CustomButton';
 import { ContentLayout } from '../../components/layouts/dashboard/ContentLayout';
@@ -37,6 +37,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ExpandLessIcon from '@mui/icons-material/ExpandLess';
 import FilterAltIcon from '@mui/icons-material/FilterAlt';
 import { Role } from '../../features/users/types/user-role.enum';
+import DeleteIcon from '@mui/icons-material/Delete';
 
 type User = {
   _id: string;
@@ -66,7 +67,7 @@ const UserList: React.FC = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
-
+  
   useEffect(() => {
     dispatch(fetchUsers());
   }, [dispatch]);
@@ -82,6 +83,11 @@ const UserList: React.FC = () => {
       ...prev,
       [id]: !prev[id],
     }));
+  };
+  const handleDeleteUser = (id: string) => {
+    if (window.confirm('Are you sure you want to delete this user ?')) {
+      dispatch(deleteUser(id));
+    }
   };
 
   const handleChangePage = (_: unknown, newPage: number) => {
@@ -337,7 +343,16 @@ const UserList: React.FC = () => {
                                 <EditIcon fontSize="small" />
                               </IconButton>
                             </Tooltip>
-                          )}
+                          )} 
+                           <Tooltip title="Delete Project" arrow>
+                                            <IconButton
+                                              onClick={() => handleDeleteUser(user._id!)}
+                                              size="small"
+                                              sx={{ marginLeft: 1 }}
+                                            >
+                                              <DeleteIcon fontSize="small" />
+                                            </IconButton>
+                                          </Tooltip>
                         </TableCell>
                       </TableRow>
                       <TableRow>

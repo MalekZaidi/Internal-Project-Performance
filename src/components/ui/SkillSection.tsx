@@ -46,6 +46,8 @@ import UploadIcon from '@mui/icons-material/Upload';
 import CustomButton from './CustomButton';
 import { Style } from '@mui/icons-material';
 import { alpha } from '@mui/material/styles';
+import { RootState, AppDispatch } from "../../stores/store";
+import { useSelector } from 'react-redux';
 
 
 interface EscoSkillResult {
@@ -89,7 +91,16 @@ const SkillsSection = ({ userId, userSkills, refetchUser }: SkillsSectionProps) 
         : [...prev, skillId]
     );
   };
-  
+  //
+
+ const {user}= useSelector((state: RootState) => state.auth)
+
+    if (!user || user.role !=="team_member") {
+
+      return null;
+    }
+
+  //
 const handleConfirmSkills = async () => {
   try {
     const response = await fetch(
