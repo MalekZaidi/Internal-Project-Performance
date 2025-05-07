@@ -6,6 +6,7 @@ import { fetchUserProfile } from "./features/auth/api/authSlice";
 import Login from "./pages/auth/Login";
 import DashboardLayout from "./components/layouts/dashboard/DashboardLayout";
 import AppRoutes from "./routes/AppRoutes";
+import LandingPage from "./components/ui/LoadingPage";
 const App = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user,  token } = useSelector((state: RootState) => state.auth);
@@ -25,9 +26,13 @@ const App = () => {
   return (
     <Router>
       <Routes>
+      <Route 
+          path="/" 
+          element={user || token ? <Navigate to="/dashboard" /> : <LandingPage />} 
+        />
         <Route 
           path="/login" 
-          element={user ? <Navigate to="/" /> : <Login />} 
+          element={user ? <Navigate to="/dashboard" /> : <Login />} 
         />
         <Route
           path="/*"

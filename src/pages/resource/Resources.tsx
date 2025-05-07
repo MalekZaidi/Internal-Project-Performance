@@ -26,7 +26,13 @@ import {
   InputAdornment,
   LinearProgress,
   List,
-  Container,  
+  Container,
+  Badge,
+  alpha,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,  
   
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
@@ -40,8 +46,9 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import { Search } from '@mui/icons-material';
 import TeamRadarChart from '../../components/ui/RadarChart';
-
-
+import { motion } from 'framer-motion';
+import FiberManualRecordIcon from '@mui/icons-material/FiberManualRecord';
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome';
 const Resources = () => {
   const dispatch = useDispatch<AppDispatch>();
   const theme = useTheme();
@@ -207,6 +214,7 @@ const getInitials=(fullName: string): string => {
       console.error('Failed to add members:', error);
     }
   };
+  const [selectedSkill, setSelectedSkill] = useState<string | null>(null);
 
   const getSuitabilityConclusion = (insight: string, match: number) => {
     if (!insight) return null;
@@ -312,25 +320,32 @@ const getInitials=(fullName: string): string => {
     );
   }
 
- 
+
   return (
     <ContentLayout>
       {/* Header */}      
       <Container maxWidth="xl" sx={{ py: 4 }}>
-
-      <Box mb={4} px={{ xs: 2, md: 4 }}>
-        <Typography variant="h4" fontWeight={700} color="text.primary" sx={{ fontSize: { xs: '1.8rem', sm: '2rem', md: '2.125rem' } }}>
-          <GroupIcon sx={{ 
-            verticalAlign: 'middle', 
-            mr: 2, 
-            fontSize: { xs: '1.2em', md: '1.5em' } 
-          }} />
-          Team Management
-        </Typography>
-        <Typography variant="subtitle1" color="text.secondary" sx={{ mt: 1 }}>
-          Manage team members for selected project
-        </Typography>
-      </Box>
+      <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+        <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 6 }}>
+          <Badge badgeContent={managedProjects.length} color="primary" showZero>
+            <GroupIcon sx={{ 
+              fontSize: 40, 
+              color: theme.palette.primary.main,
+              bgcolor: alpha(theme.palette.primary.main, 0.1),
+              p: 1.5,
+              borderRadius: 3
+            }} />
+          </Badge>
+          <div>
+            <Typography variant="h4" fontWeight={700}>
+              Team Management
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Optimize team composition and skill alignment for selected projects
+            </Typography>
+          </div>
+        </Stack>
+      </motion.div>
 
       {projectsLoading ? (
           <Box display="flex" justifyContent="center" mt={4}>
@@ -347,511 +362,746 @@ const getInitials=(fullName: string): string => {
           }}>
             {/* Current Team Section */}
             <Paper sx={{ 
-              p: { xs: 2, md: 3 },
-              borderRadius: 4,
-              border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: theme.palette.background.paper
-            }}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  Current Team Members ({project.assignedTeamMembers?.length || 0})
-                </Typography>
-                <Divider />
-                
-                <Grid container spacing={2} sx={{ mt: 2 }}>
-                  {project.assignedTeamMembers?.map(member => {
-                    const user = typeof member === 'object' ? member : users.find(u => u._id === member);
-                    return user ? (
-                      <Grid item xs={12} sm={6} md={4} lg={3} width={'100%'} key={user._id}>
-
-                        <Paper sx={{ 
-                          p: 2,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 2,
-                          borderRadius: 3,
-                          border: `1px solid ${theme.palette.divider}`,
-                          '&:hover': {
-                            boxShadow: theme.shadows[1],
-                          }
-                        }}>
-                          <Avatar sx={{ 
-                            bgcolor: theme.palette.primary.main,
-                            width: 48, 
-                            height: 48,
-                            fontSize: '1.2rem'
-                          }}>
-                            {getInitials(user.fullName)}
-                          </Avatar>
-                          <Box>
-                            <Typography fontWeight={600}>{user.fullName}</Typography>
-                            <Typography variant="body2" color="text.secondary">
-                              {user.role}
-                            </Typography>
-                            <Chip 
-                              label="Active" 
-                              size="small" 
-                              color="success" 
-                              sx={{ mt: 0.5, fontSize: '0.75rem' }}
-                            />
-                          </Box>
-                        </Paper>
-                      </Grid>
-                    ) : null;
-                  })}
-                </Grid>
-                
-                {(!project.assignedTeamMembers || project.assignedTeamMembers.length === 0) && (
-                  <Box sx={{ 
-                    p: 4,
-                    textAlign: 'center',
-                    border: `2px dashed ${theme.palette.divider}`,
-                    borderRadius: 3,
-                    mt: 2
-                  }}>
-                    <Typography variant="body1" color="text.secondary">
-                      No team members assigned yet
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            </Paper>
-
-            {/* Add Team Members Section */}
-            <Paper sx={{ 
-              p: 4,
-              borderRadius: 4,
-              border: `1px solid ${theme.palette.divider}`,
-              backgroundColor: theme.palette.background.paper
-            }}>
-              <Box sx={{ mb: 3 }}>
-                <Typography variant="h6" fontWeight={600} gutterBottom>
-                  Add Team Members
-                </Typography>
-                <Divider />
-              </Box>
-
-              <Grid container spacing={4}>
-                {/* Search Section */}
-                <Grid item xs={12} md={5}>
-                  <Autocomplete
-                    multiple
-                    options={users.filter(u => u.role === 'team_member')}
-                    getOptionLabel={(option) => option.fullName}
-                    value={users.filter(u => selectedMembers.includes(u._id))}
-                    onChange={(_, newValue) => {
-                      const newMembers = newValue.map(u => u._id);
-                      setSelectedMembers(newMembers);
-                      
-                      const matches = newValue.reduce((acc, user) => {
-                        acc[user._id] = calculateSkillMatch(
-                          user.skills || [],
-                          project.skills || []
-                        );
-                        return acc;
-                      }, {} as { [key: string]: number });
-                      
-                      setSkillMatches(prev => ({
-                        ...prev,
-                        [project._id!]: matches
-                      }));
-                    }}
-                    renderInput={(params) => (
-                      <TextField 
-                        {...params} 
-                        label="Search team members"
-                        placeholder="Start typing..."
-                        variant="outlined"
-                        fullWidth
-                        InputProps={{
-                          ...params.InputProps,
-                          startAdornment: (
-                            <InputAdornment position="start">
-                              <Search color="action" />
-                            </InputAdornment>
-                          )
-                        }}
-                      />
-                    )}
-                    renderOption={(props, user) => {
-                      const match = calculateSkillMatch(user.skills || [], project.skills || []);
-                      return (
-                        <li {...props}>
-                          <Grid container alignItems="center" spacing={2}>
-                            <Grid item xs={3}>
-                              <Avatar sx={{ 
-                                bgcolor: 'primary.main',
-                                width: 32,
-                                height: 32,
-                                fontSize: '0.9rem'
-                              }}>
-                                {getInitials(user.fullName)}
-                              </Avatar>
-                            </Grid>
-                            <Grid item xs={6}>
-                              <Typography fontWeight={500}>{user.fullName}</Typography>
-                              <Typography variant="caption" color="textSecondary">
-                                {user.skills?.slice(0, 3).map(s => s.name).join(', ')}
-                              </Typography>
-                            </Grid>
-                            <Grid item xs={3}>
-                            <Chip 
-                              label={`${Math.round(match)}% match`}
-                              variant="outlined"
-                              sx={{
-                                fontWeight: 600,
-                                borderColor:
-                                  match >= 75 ? theme.palette.success.main :
-                                  match >= 50 ? theme.palette.warning.main : theme.palette.error.main,
-                                color:
-                                  match >= 75 ? theme.palette.success.dark :
-                                  match >= 50 ? theme.palette.warning.dark : theme.palette.error.dark
-                              }}
-                            />
-                              <LinearProgress 
-                                variant="determinate" 
-                                value={match}
-                                sx={{
-                                  height: 8,
-                                  borderRadius: 4,
-                                  backgroundColor: theme.palette.grey[200],
-                                  '& .MuiLinearProgress-bar': {
-                                    borderRadius: 4,
-                                    backgroundColor: 
-                                      match >= 75 ? theme.palette.success.main :
-                                      match >= 50 ? theme.palette.warning.main : 
-                                      theme.palette.error.main
-                                  }
-                                }}
-                              /> 
-                            </Grid>
-                          </Grid>
-                        </li>
-                      );
-                    }}
-                  />
-                </Grid>
-
-                {/* Skill Analysis Section */}
-                {selectedMembers.length > 0 && (
-                  <Grid >
-                    <Box sx={{ 
-                      p: 4,
-                      borderRadius: 3,
-                      backgroundColor: theme.palette.grey[50]
-                    }}>
-                      <Typography variant="subtitle1" fontWeight={600} gutterBottom>
-                        Team Composition Analysis
-                      </Typography>
-                      
-                      <Grid container spacing={2} sx={{ width: '100%' }}>
-                          {/* Left Grid */}
-                    <Grid item xs={6}>
-                        <TeamRadarChart
-                                          projectSkills={project.skills || []}
-                                          memberSkills={selectedMembers.map(memberId => {
-                                            const user = users.find(u => u._id === memberId);
-                                            return {
-                                              userId: user?._id || '',
-                                              fullName: user?.fullName || '',
-                                              skills: user?.skills || []
-                                            };
-                                          })}
-                                        />
-
-                        </Grid>
-
-                        <Grid item xs={6}>
-                            <List dense sx={{ maxHeight: 400, overflow: 'auto', width: '100%' }}>
-                            {selectedMembers.map(memberId => {
-                              const user = users.find(u => u._id === memberId);
-                              const match = skillMatches[project._id!]?.[memberId] || 0;
-                              const projectSkills = project.skills || [];
-                              const userSkills = user?.skills || [];
-                              const matchesCount = userSkills.filter(s => 
-                                projectSkills.some(ps => getSkillIdentifier(ps) === getSkillIdentifier(s))
-                              ).length;
-                              const requiredSkillIds = new Set(projectSkills.map(getSkillIdentifier));
-                              const userSkillIds = new Set(userSkills.map(getSkillIdentifier));
-                              return (
-                                <Paper 
-                                  key={memberId} 
-                                  sx={{ 
-                                    mb: 2,
-                                    p: 2,
-                                    borderRadius: 2,
-                                    borderLeft: `4px solid ${
-                                      match >= 75 ? theme.palette.success.main :
-                                      match >= 50 ? theme.palette.warning.main : 
-                                      theme.palette.error.main
-                                    }`
-                                  }}
-                                >
-                                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2,width:'100%' }}>
-                                    <Avatar sx={{ 
-                                      bgcolor: 'primary.main',
-                                      width: 40,
-                                      height: 40,
-                                      fontSize: '1rem'
-                                    }}>
-                                      {getInitials(user?.fullName || '')}
-                                    </Avatar>
-                                    <Typography>{getInitials(user?.fullName || '')}</Typography>
-                                    <Chip 
-            label={`${matchesCount}/${projectSkills.length} skills matched`}
-            variant='outlined'
-            sx={{
-              ml: 1.5,
-              fontWeight: 600,
-              borderColor:
-                match >= 75 ? theme.palette.success.light :
-                match >= 50 ? theme.palette.warning.light : theme.palette.error.light,
-              color:
-                match >= 75 ? theme.palette.success.dark :
-                match >= 50 ? theme.palette.warning.dark : theme.palette.error.dark
-            }}
-          />
-         <Chip 
-                                  label={`${Math.round(match)}% match`}
-                                  variant="outlined"
-                                  sx={{
-                                    fontWeight: 600,
-                                    borderColor:
-                                      match >= 75 ? theme.palette.success.main :
-                                      match >= 50 ? theme.palette.warning.main : theme.palette.error.main,
-                                    color:
-                                      match >= 75 ? theme.palette.success.dark :
-                                      match >= 50 ? theme.palette.warning.dark : theme.palette.error.dark
-                                  }}
-                                />
-                                    
-                                    {getSuitabilityConclusion(aiInsights[project._id!]?.[memberId], match)}
-                                  </Box>
-      <Grid container spacing={2} sx={{ mb: 2 }}>
-        {/* User Skills Column */}
-        <Grid item xs={6}>
-          <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
-            User Skills ({userSkills.length})
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {userSkills.length > 0 ? (
-              userSkills.map(skill => {
-                const isMatch = requiredSkillIds.has(getSkillIdentifier(skill));
-                return (
-                  <Tooltip key={getSkillIdentifier(skill)} title={skill.description || skill.name}>
-                    <Chip
-                      label={skill.name}
-                      size="small"
-                      color={isMatch ? 'success' : 'default'}
-                      variant={isMatch ? 'filled' : 'outlined'}
-                      icon={isMatch ? <CheckIcon fontSize="small" /> : undefined}
-                      sx={{ 
-                        '& .MuiChip-icon': { 
-                          ml: 0.5,
-                          fontSize: '0.9rem'
-                        } 
-                      }}
-                    />
-                  </Tooltip>
-                );
-              })
-            ) : (
-              <Typography variant="caption" color="text.disabled">
-                No skills listed
-              </Typography>
-            )}
-          </Box>
-        </Grid>
-
-        {/* Project Requirements Column */}
-        <Grid item xs={6}>
-          <Typography variant="caption" color="textSecondary" display="block" gutterBottom>
-            Required Skills ({projectSkills.length})
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-            {projectSkills.length > 0 ? (
-              projectSkills.map(skill => {
-                const isMatch = userSkillIds.has(getSkillIdentifier(skill));
-                return (
-                  <Tooltip key={getSkillIdentifier(skill)} title={skill.description || skill.name}>
-                    <Chip
-                      label={skill.name}
-                      size="small"
-                      color={isMatch ? 'success' : 'error'}
-                      variant="outlined"
-                      icon={isMatch ? <CheckIcon fontSize="small" /> : <CloseIcon fontSize="small" />}
-                      sx={{ 
-                        '& .MuiChip-icon': { 
-                          ml: 0.5,
-                          fontSize: '0.9rem'
-                        } 
-                      }}
-                    />
-                  </Tooltip>
-                );
-              })
-            ) : (
-              <Typography variant="caption" color="text.disabled">
-                No specific skills required
-              </Typography>
-            )}
-          </Box>
-        </Grid>
-      </Grid>
-                 <Box sx={{ mt: 2 }}>
-                              {aiInsights[project._id!]?.[memberId] ? (
-                                <Typography variant="body2" color="textSecondary">
-                                  {aiInsights[project._id!][memberId]}
-                                </Typography>
-                              ) : (
-                                <Button 
-                                  variant="outlined"
-                                  startIcon={<LightbulbIcon />}
-                                  onClick={() => getAiInsights(memberId, project._id!)}
-                                  sx={{ mt: 1 }}
-                                >
-                                  Generate AI Insights
-                                </Button>
-                              )}
-                            </Box>
-                                </Paper>
-                              );
-                            })}
-                          </List>
-                        </Grid>
-                      </Grid>
-                      <Divider />            
-{/* Comparative Analysis Section - Only shows when 2+ members selected */}
-{selectedMembers.length >= 2 && (
-  <Box sx={{ 
-    mt: 3,
-    p: 3,
-    border: `2px solid ${theme.palette.primary.light}`,
-    borderRadius: 4,
-    backgroundColor: 'background.paper',
-    position: 'relative',
-    overflow: 'hidden'
-  }}>
+  p: { xs: 2, md: 3 },
+  borderRadius: '12px',
+  border: `1px solid ${theme.palette.divider}`,
+  backgroundColor: theme.palette.background.paper,
+  boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.05)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '4px',
+    height: '100%',
+    background: `linear-gradient(180deg, ${theme.palette.primary.main} 0%, ${theme.palette.secondary.main} 100%)`,
+  }
+}}>
+  <Box sx={{ mb: 3 }}>
     <Box sx={{ 
       display: 'flex',
       alignItems: 'center',
+      justifyContent: 'space-between',
       mb: 2,
-      gap: 1.5
+      gap: 2
     }}>
-      <LightbulbIcon sx={{ 
-        color: 'primary.main', 
-        fontSize: '1.8rem',
-        transform: 'rotate(15deg)'
-      }} />
-      <Typography variant="h6" fontWeight={600}>
-        AI Comparative Analysis
+      <Typography variant="h6" fontWeight={650} sx={{ 
+        letterSpacing: '-0.25px',
+        fontSize: '1.25rem',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 1.5
+      }}>
+        <GroupIcon sx={{ 
+          color: theme.palette.primary.main,
+          fontSize: '1.5em',
+          bgcolor: alpha(theme.palette.primary.main, 0.1),
+          p: 1,
+          borderRadius: '8px'
+        }} />
+        Team Roster
       </Typography>
+      <Chip 
+        label={`${project.assignedTeamMembers?.length || 0} members`}
+        variant="outlined"
+        color="primary"
+        sx={{ 
+          fontWeight: 600,
+          borderWidth: '2px',
+          borderRadius: '8px',
+          px: 1
+        }}
+      />
     </Box>
+    <Divider sx={{ borderWidth: '1px', opacity: 0.5 }} />
+    
+    <Grid container spacing={2} sx={{ mt: 2 }}>
+      {project.assignedTeamMembers?.map(member => {
+        const user = typeof member === 'object' ? member : users.find(u => u._id === member);
+        return user ? (
+          <Grid item xs={12} sm={6} md={4} xl={3} key={user._id}>
+            <Paper 
+              component={motion.div}
+              whileHover={{ y: -4 }}
+              sx={{ 
+                p: 2,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                borderRadius: '8px',
+                border: `1px solid ${alpha(theme.palette.divider, 0.3)}`,
+                background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${theme.palette.background.default})`,
+                backdropFilter: 'blur(8px)',
+                transition: 'all 0.2s ease',
+                position: 'relative',
+                overflow: 'hidden',
+                '&:hover': {
+                  boxShadow: '0px 6px 16px rgba(0, 0, 0, 0.08)',
+                  borderColor: alpha(theme.palette.primary.main, 0.3),
+                }
+              }}>
+              <Box sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                background: `linear-gradient(45deg, ${alpha(theme.palette.primary.light, 0.03)}, ${alpha(theme.palette.secondary.light, 0.03)})`,
+                zIndex: 0,
+              }} />
+              
+              <Avatar sx={{ 
+                width: 52, 
+                height: 52,
+                fontSize: '1.1rem',
+                fontWeight: 600,
+                background: `linear-gradient(45deg, ${theme.palette.primary.main}, ${theme.palette.secondary.main})`,
+                color: theme.palette.common.white,
+                zIndex: 1
+              }}>
+                {getInitials(user.fullName)}
+              </Avatar>
+              
+              <Box sx={{ zIndex: 1 }}>
+                <Typography 
+                  fontWeight={650}
+                  sx={{ 
+                    lineHeight: 1.2,
+                    mb: 0.5,
+                    letterSpacing: '-0.1px'
+                  }}>
+                  {user.fullName}
+                </Typography>
+                <Typography 
+                  variant="caption" 
+                  color="text.secondary"
+                  sx={{ 
+                    display: 'block',
+                    fontWeight: 500,
+                    fontSize: '0.8rem'
+                  }}>
+                  {user.role}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ mt: 1.5 }}>
+                  <Chip 
+                    label="Active"
+                    size="small"
+                    color="success"
+                    variant="filled"
+                    sx={{
+                      fontWeight: 600,
+                      px: 1,
+                      '& .MuiChip-label': { 
+                        fontSize: '0.7rem',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }
+                    }}
+                    icon={<FiberManualRecordIcon sx={{ fontSize: '10px' }} />}
+                  />
+                  <Chip 
+                    label={`${user.skills?.length} skills`}
+                    size="small"
+                    variant="outlined"
+                    sx={{
+                      fontWeight: 500,
+                      borderColor: alpha(theme.palette.divider, 0.3),
+                      color: theme.palette.text.secondary,
+                      '& .MuiChip-label': { fontSize: '0.7rem' }
+                    }}
+                  />
+                </Stack>
+              </Box>
+            </Paper>
+          </Grid>
+        ) : null;
+      })}
+    </Grid>
 
-    {comparativeAnalysis[project._id!] ? (
-      <Paper sx={{
-        p: 2.5,
-        border: `1px solid ${theme.palette.divider}`,
-        backgroundColor: 'grey.50',
-        whiteSpace: 'pre-wrap',
-        position: 'relative'
-      }}>
-        <Box sx={{
-          position: 'absolute',
-          right: 8,
-          top: 8,
-          display: 'flex',
-          gap: 1,
-          alignItems: 'center'
-        }}>
-          <Chip 
-            label="AI Generated" 
-            size="small" 
-            color="primary" 
-            variant="outlined"
-            sx={{ fontWeight: 500 }}
-          />
-          <CheckIcon color="success" fontSize="small" />
-        </Box>
-        <Typography variant="body2" component="div" sx={{ 
-          lineHeight: 1.6,
-          '& strong': {
-            color: 'primary.dark',
-            fontWeight: 600
-          },
-          '& em': {
-            backgroundColor: 'warning.light',
-            fontStyle: 'normal',
-            px: 0.5,
-            borderRadius: 1
-          }
-        }}>
-        {comparativeAnalysis[project._id!].split('\n').map((line, index) => (
-            <React.Fragment key={index}>
-              {line.replace(/(\d+\.|\-)/, match => 
-                match === '-' ? '• ' : `${match} `)}
-              <br />
-            </React.Fragment>
-          ))}
-        </Typography>
-      </Paper>
-    ) : (
+    {(!project.assignedTeamMembers || project.assignedTeamMembers.length === 0) && (
       <Box sx={{ 
+        p: 4,
         textAlign: 'center',
-        py: 3,
-        border: `2px dashed ${theme.palette.divider}`,
-        borderRadius: 3
+        border: `2px dashed ${alpha(theme.palette.divider, 0.4)}`,
+        borderRadius: '12px',
+        mt: 2,
+        background: `repeating-linear-gradient(
+          45deg,
+          ${theme.palette.background.paper},
+          ${theme.palette.background.paper} 10px,
+          ${theme.palette.background.default} 10px,
+          ${theme.palette.background.default} 20px
+        )`
       }}>
-        <Button
-          variant="contained"
-          startIcon={<LightbulbIcon />}
-          onClick={() => getComparativeAnalysis(project._id!)}
-          sx={{
-            px: 4,
-            py: 1.5,
-            borderRadius: 50,
-            fontWeight: 600,
-            boxShadow: theme.shadows[4],
-            '&:hover': {
-              boxShadow: theme.shadows[6],
-              transform: 'translateY(-2px)'
-            },
-            transition: 'all 0.2s'
-          }}
-        >
-          Generate Comparative Analysis
-        </Button>
-        <Typography variant="caption" display="block" sx={{ 
-          mt: 1.5,
-          color: 'text.secondary'
+        <Box sx={{ 
+          maxWidth: 300,
+          mx: 'auto',
+          mb: 2,
+          opacity: 0.8
         }}>
-          Requires at least 2 selected members
+          <PersonAddIcon fill="#ffe600" sx={{ 
+            fontSize: 60,
+            color: "#ffe600", 
+
+          }} />
+        </Box>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 1 }}>
+          No team members assigned
+        </Typography>
+        <Typography variant="body2" color="text.disabled" sx={{ fontSize: '0.9rem' }}>
+          Start building your team using the panel below
         </Typography>
       </Box>
     )}
   </Box>
-)}
-                     
-                      <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-                        <Button 
-                          variant="outlined"
-                          onClick={() => setSelectedMembers([])}
-                        >
-                          Clear Selection
-                        </Button>
-                        <CustomButton
-                          variant="contained"
-                          onClick={() => handleAddMembers(project._id!)}
-                          startIcon={<PersonAddIcon />}
-                        >
-                          Add Selected Members
-                        </CustomButton>
-                      </Box>
+            </Paper>
+
+            {/* Add Team Members Section */}
+            <Paper sx={{ 
+  p: 4,
+  borderRadius: 4,
+  border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+  backgroundColor: alpha(theme.palette.background.paper, 0.9),
+  backdropFilter: 'blur(12px)',
+  boxShadow: '0px 8px 32px rgba(0, 0, 0, 0.05)',
+  position: 'relative',
+  overflow: 'hidden',
+  '&:before': {
+    content: '""',
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    width: '4px',
+    height: '100%',
+    background: `#333333`,
+  }
+}}>
+  <Box sx={{ mb: 3 }}>
+    <Box sx={{ 
+      display: 'flex',
+      alignItems: 'center',
+      gap: 2,
+      mb: 2,
+      paddingBottom: 2,
+      borderBottom: `1px solid ${alpha(theme.palette.divider, 0.2)}`
+    }}>
+      <PersonAddIcon sx={{ 
+        fontSize: 32,
+        color: theme.palette.primary.main,
+        bgcolor: alpha(theme.palette.primary.main, 0.1),
+        p: 1,
+        borderRadius: 2
+      }} />
+      <Typography variant="h5" fontWeight={650}>
+        Build Your Team
+      </Typography>
+      <Chip 
+        label={`${selectedMembers.length} selected`} 
+        color="primary"
+        variant="outlined"
+        sx={{ 
+          ml: 'auto',
+          fontWeight: 600,
+          borderWidth: 2,
+          borderRadius: 2
+        }}
+      />
+    </Box>
+  </Box>
+
+  <Grid container spacing={4}>
+    {/* Search Section with Filter */}
+    <Grid item xs={12}>
+      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+        <FormControl sx={{ minWidth: 180 }}>
+          <InputLabel>Filter by Skill</InputLabel>
+          <Select
+            value={selectedSkill || ''}
+            onChange={(e) => setSelectedSkill(e.target.value || null)}
+            label="Filter by Skill"
+            sx={{
+              borderRadius: 3,
+              '& .MuiOutlinedInput-input': {
+                py: '13.5px'
+              }
+            }}
+          >
+            <MenuItem value=""><em>All Skills</em></MenuItem>
+            {Array.from(new Set(
+              users.flatMap(u => u.skills?.map(s => s.name) || [])
+            )).map(skill => (
+              <MenuItem key={skill} value={skill}>{skill}</MenuItem>
+            ))}
+          </Select>
+        </FormControl>
+
+        <Autocomplete
+      multiple
+      sx={{ width: { xs: '100%', md: 400 } }}
+      options={users.filter(u => u.role === 'team_member')}
+      getOptionLabel={opt => opt.fullName}
+      value={users.filter(u => selectedMembers.includes(u._id))}
+      onChange={(_, newValue) => {
+        const ids = newValue.map(u => u._id);
+        setSelectedMembers(ids);
+        const matches = newValue.reduce((acc, u) => {
+          acc[u._id] = calculateSkillMatch(u.skills || [], project.skills || []);
+          return acc;
+        }, {} as Record<string, number>);
+        setSkillMatches(prev => ({ ...prev, [project._id!]: matches }));
+      }}
+      renderInput={params => (
+        <TextField
+          {...params}
+          label="Search team members"
+          placeholder="Start typing..."
+          variant="outlined"
+          fullWidth
+          InputProps={{
+            ...params.InputProps,
+            startAdornment: (
+              <InputAdornment position="start">
+                <Search sx={{ color: theme.palette.text.secondary }} />
+              </InputAdornment>
+            ),
+          }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              borderRadius: 3,
+              backgroundColor: alpha(theme.palette.background.paper, 0.6),
+              '&:hover fieldset': { borderColor: theme.palette.primary.light },
+            },
+          }}
+        />
+      )}
+      renderOption={(props, user) => {
+        const match = calculateSkillMatch(user.skills || [], project.skills || []);
+        return (
+          <Box
+            component="li"
+            {...props}
+            sx={{
+              py: 1.5,
+              px: 2,
+              borderRadius: 2,
+              transition: '0.2s',
+              '&:hover': { backgroundColor: alpha(theme.palette.primary.main, 0.05) },
+            }}
+          >
+            <Grid container alignItems="center" spacing={2}>
+              <Grid item xs={2}>
+                <Avatar
+                  sx={{
+                    bgcolor: alpha(theme.palette.primary.main, 0.1),
+                    width: 40,
+                    height: 40,
+                    color: theme.palette.primary.main,
+                  }}
+                >
+                  {getInitials(user.fullName)}
+                </Avatar>
+              </Grid>
+              <Grid item xs={7}>
+                <Typography fontWeight={600}>{user.fullName}</Typography>
+                <Typography variant="caption" color="textSecondary">
+                  {user.skills?.slice(0, 3).map(s => s.name).join(', ')}
+                </Typography>
+              </Grid>
+              <Grid item xs={3}>
+                <Box textAlign="right">
+                  <Chip
+                    label={`${Math.round(match)}%`}
+                    size="small"
+                    sx={{
+                      fontWeight: 700,
+                      backgroundColor:
+                        match >= 75
+                          ? alpha(theme.palette.success.main, 0.15)
+                          : match >= 50
+                          ? alpha(theme.palette.warning.main, 0.15)
+                          : alpha(theme.palette.error.main, 0.15),
+                      color:
+                        match >= 75
+                          ? theme.palette.success.dark
+                          : match >= 50
+                          ? theme.palette.warning.dark
+                          : theme.palette.error.dark,
+                    }}
+                  />
+                  <LinearProgress
+                    variant="determinate"
+                    value={match}
+                    sx={{
+                      mt: 1,
+                      height: 6,
+                      borderRadius: 3,
+                      backgroundColor: alpha(theme.palette.divider, 0.2),
+                      '& .MuiLinearProgress-bar': {
+                        borderRadius: 3,
+                        backgroundColor:
+                          match >= 75
+                            ? theme.palette.success.main
+                            : match >= 50
+                            ? theme.palette.warning.main
+                            : theme.palette.error.main,
+                      },
+                    }}
+                  />
                     </Box>
                   </Grid>
+                </Grid>
+              </Box>
+            );
+          }}
+        />
+      </Box>
+    </Grid>
+
+    {/* Skill Analysis Section */}
+    {selectedMembers.length > 0 && (
+      <Grid item xs={12}>
+        <Box sx={{ 
+          p: 4,
+          borderRadius: 3,
+          backgroundColor: 'white',
+          border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+          backdropFilter: 'blur(8px)'
+        }}>
+          <Typography variant="h6" fontWeight={650} sx={{ mb: 3, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <LightbulbIcon style={{ color: "#333333" }} />
+          Team Composition Analysis
+          </Typography>
+          
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <Box sx={{ 
+                p: 2,
+                borderRadius: 3,
+                backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                border: `1px solid ${alpha(theme.palette.divider, 0.2)}`
+              }}>
+                <TeamRadarChart
+                  projectSkills={project.skills || []}
+                  memberSkills={selectedMembers.map(memberId => {
+                    const user = users.find(u => u._id === memberId);
+                    return {
+                      userId: user?._id || '',
+                      fullName: user?.fullName || '',
+                      skills: user?.skills || []
+                    };
+                  })}
+                />
+              </Box>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <List dense sx={{ height: 400, overflow: 'auto' }}>
+                {selectedMembers.map(memberId => {
+                  const user = users.find(u => u._id === memberId);
+                  const match = skillMatches[project._id!]?.[memberId] || 0;
+                  const projectSkills = project.skills || [];
+                  const userSkills = user?.skills || [];
+                  const matchesCount = userSkills.filter(s => 
+                    projectSkills.some(ps => getSkillIdentifier(ps) === getSkillIdentifier(s))
+                  ).length;
+                  
+                  return (
+                    <motion.div key={memberId} whileHover={{ scale: 1.01 }}>
+                      <Paper sx={{ 
+                        mb: 2,
+                        p: 2,
+                        borderRadius: 2,
+                        borderLeft: `4px solid ${
+                          match >= 75 ? theme.palette.success.main :
+                          match >= 50 ? theme.palette.warning.main : 
+                          theme.palette.error.main
+                        }`,
+                        boxShadow: theme.shadows[1],
+                        background: `linear-gradient(145deg, ${alpha(theme.palette.background.paper, 0.8)}, ${theme.palette.background.default})`
+                      }}>
+                        <Stack direction="row" alignItems="center" spacing={2}>
+                          <Avatar sx={{ 
+                            bgcolor: alpha(theme.palette.primary.main, 0.1),
+                            width: 40,
+                            height: 40,
+                            color: theme.palette.primary.main
+                          }}>
+                            {getInitials(user?.fullName || '')}
+                          </Avatar>
+                          <Box>
+                            <Typography fontWeight={600}>{user?.fullName}</Typography>
+                            <Stack direction="row" spacing={1} sx={{ mt: 0.5 }}>
+                              <Chip 
+                                label={`${matchesCount}/${projectSkills.length} skills`}
+                                size="small"
+                                variant="outlined"
+                                color="primary"
+                              />
+                              <Chip 
+                                label={`${Math.round(match)}% match`}
+                                size="small"
+                                sx={{
+                                  fontWeight: 600,
+                                  backgroundColor:
+                                    match >= 75 ? alpha(theme.palette.success.main, 0.15) :
+                                    match >= 50 ? alpha(theme.palette.warning.main, 0.15) : 
+                                    alpha(theme.palette.error.main, 0.15),
+                                  color:
+                                    match >= 75 ? theme.palette.success.dark :
+                                    match >= 50 ? theme.palette.warning.dark : 
+                                    theme.palette.error.dark
+                                }}
+                              />
+                            </Stack>
+                          </Box>
+                          {getSuitabilityConclusion(aiInsights[project._id!]?.[memberId], match)}
+                        </Stack>
+
+                        <Grid container spacing={2} sx={{ mt: 2 }}>
+                          <Grid item xs={6}>
+                            <Typography variant="caption" fontWeight={600} color="textSecondary" display="block" gutterBottom>
+                              USER SKILLS
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                              {userSkills.length > 0 ? userSkills.map(skill => (
+                                <Tooltip key={getSkillIdentifier(skill)} title={skill.description || skill.name}>
+                                  <Chip
+                                    label={skill.name}
+                                    size="small"
+                                    variant="filled"
+                                    color={
+                                      projectSkills.some(ps => getSkillIdentifier(ps) === getSkillIdentifier(skill)) 
+                                        ? 'success' 
+                                        : 'default'
+                                    }
+                                    sx={{
+                                      fontWeight: 500,
+                                      '& .MuiChip-icon': { 
+                                        ml: 0.5,
+                                        fontSize: '0.8rem'
+                                      }
+                                    }}
+                                    icon={<CheckIcon fontSize="small" />}
+                                  />
+                                </Tooltip>
+                              )) : (
+                                <Typography variant="caption" color="text.disabled">
+                                  No skills listed
+                                </Typography>
+                              )}
+                            </Box>
+                          </Grid>
+
+                          <Grid item xs={6}>
+                            <Typography variant="caption" fontWeight={600} color="textSecondary" display="block" gutterBottom>
+                              REQUIRED SKILLS
+                            </Typography>
+                            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                              {projectSkills.length > 0 ? projectSkills.map(skill => (
+                                <Tooltip key={getSkillIdentifier(skill)} title={skill.description || skill.name}>
+                                  <Chip
+                                    label={skill.name}
+                                    size="small"
+                                    variant="filled"
+                                    color={
+                                      userSkills.some(us => getSkillIdentifier(us) === getSkillIdentifier(skill)) 
+                                        ? 'success' 
+                                        : 'error'
+                                    }
+                                    sx={{
+                                      fontWeight: 500,
+                                      '& .MuiChip-icon': { 
+                                        ml: 0.5,
+                                        fontSize: '0.8rem'
+                                      }
+                                    }}
+                                    icon={
+                                      userSkills.some(us => getSkillIdentifier(us) === getSkillIdentifier(skill)) 
+                                        ? <CheckIcon fontSize="small" /> 
+                                        : <CloseIcon fontSize="small" />
+                                    }
+                                  />
+                                </Tooltip>
+                              )) : (
+                                <Typography variant="caption" color="text.disabled">
+                                  No skills required
+                                </Typography>
+                              )}
+                            </Box>
+                          </Grid>
+                        </Grid>
+
+                        <Box sx={{ mt: 2 }}>
+                          {aiInsights[project._id!]?.[memberId] ? (
+                            <Paper sx={{
+                              p: 2,
+                              borderRadius: 2,
+                              backgroundColor: alpha(theme.palette.primary.light, 0.05)
+                            }}>
+                              <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
+                                {aiInsights[project._id!][memberId]}
+                              </Typography>
+                            </Paper>
+                          ) : (
+                            <CustomButton
+                              variant="outlined"
+                              startIcon={<LightbulbIcon />}
+                              onClick={() => getAiInsights(memberId, project._id!)}
+                              sx={{  color: '#222',
+                                borderColor: '#333333',
+                                width: '100%',
+                                borderRadius: 2,
+                                py: 1,
+                                borderWidth: 2,
+                                '&:hover': {
+                                  borderWidth: 2
+                                }
+                              }}
+                            >
+                              Generate AI Insights
+                            </CustomButton>
+                          )}
+                        </Box>
+                      </Paper>
+                    </motion.div>
+                  );
+                })}
+              </List>
+            </Grid>
+          </Grid>
+
+          {/* Comparative Analysis Section */}
+          {selectedMembers.length >= 2 && (
+            <Box sx={{ mt: 4 }}>
+              <Paper sx={{ 
+                p: 3,
+                borderRadius: 3,
+                backgroundColor: 'white',
+                border: `1px solid #333333`,
+                position: 'relative',
+                overflow: 'hidden'
+              }}>
+                <Stack direction="row" alignItems="center" spacing={2} sx={{ mb: 2 }}>
+                  <LightbulbIcon sx={{ 
+                    color: '#333333',
+                    fontSize: '1.8rem',
+                    p: 1,
+                    borderRadius: 2
+                  }} />
+                  <Typography variant="h6" fontWeight={650}>
+                    AI Comparative Analysis
+                  </Typography>
+                </Stack>
+
+                {comparativeAnalysis[project._id!] ? (
+                  <Paper sx={{
+                    p: 2.5,
+                    borderRadius: 2,
+                    backgroundColor: alpha(theme.palette.background.paper, 0.8),
+                    backdropFilter: 'blur(6px)'
+                  }}>
+                    <Box sx={{
+                      display: 'flex',
+                      gap: 1,
+                      mb: 1.5
+                    }}>
+                      <Chip 
+                        label="AI Generated" 
+                        size="small" 
+                        color="primary" 
+                        variant="outlined"
+                        icon={<AutoAwesomeIcon fontSize="small" />}
+                      />
+                      <Chip 
+                        label={`${selectedMembers.length} Members Analyzed`}
+                        size="small"
+                        variant="outlined"
+                        color="secondary"
+                      />
+                    </Box>
+                    <Typography variant="body2" component="div" sx={{ 
+                      lineHeight: 1.6,
+                      color: theme.palette.text.secondary,
+                      '& strong': {
+                        color: theme.palette.primary.main,
+                        fontWeight: 600
+                      },
+                      '& em': {
+                        backgroundColor: alpha(theme.palette.warning.main, 0.1),
+                        fontStyle: 'normal',
+                        px: 0.5,
+                        borderRadius: 1
+                      }
+                    }}>
+                      {comparativeAnalysis[project._id!].split('\n').map((line, index) => (
+                        <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 1 }}>
+                          <FiberManualRecordIcon sx={{ fontSize: '0.5rem', mt: '0.5rem' }} />
+                          <span>{line.replace(/^\d+\.\s*/, '')}</span>
+                        </Box>
+                      ))}
+                    </Typography>
+                  </Paper>
+                ) : (
+                  <Box sx={{ 
+                    textAlign: 'center',
+                    py: 3,
+                    border: `2px dashed ${alpha(theme.palette.divider, 0.3)}`,
+                    borderRadius: 3
+                  }}>
+                    <Button 
+                      variant="contained"
+                      startIcon={<LightbulbIcon />}
+                      onClick={() => getComparativeAnalysis(project._id!)}
+                      sx={{    backgroundColor: '#333333', // Corrected background color
+                        px: 4,
+                        py: 1.5,
+                        borderRadius: 3,
+                        fontWeight: 650,
+                        boxShadow: theme.shadows[2],
+                        '&:hover': {
+                          boxShadow: theme.shadows[4],
+                          transform: 'translateY(-1px)'
+                        },
+                        transition: 'all 0.2s'
+                      }}
+                    >
+                      Generate Comparative Analysis
+                    </Button>
+                    <Typography variant="caption" display="block" sx={{ 
+                      mt: 1.5,
+                      color: theme.palette.text.secondary
+                    }}>
+                      Requires at least 2 selected members
+                    </Typography>
+                  </Box>
                 )}
-              </Grid>
-            </Paper>
+              </Paper>
+            </Box>
+          )}               
+          <Box sx={{ mt: 3, display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+            <Button 
+              variant="outlined"
+              onClick={() => setSelectedMembers([])}
+            >
+              Clear Selection
+            </Button>
+            <CustomButton
+              variant="contained"
+              onClick={() => handleAddMembers(project._id!)}
+              startIcon={<PersonAddIcon />}
+            >
+              Add Selected Members
+            </CustomButton>
+          </Box>
+        </Box>
+      </Grid>
+    )}
+  </Grid>
+</Paper>
+
           </Box>
         ))
       )}

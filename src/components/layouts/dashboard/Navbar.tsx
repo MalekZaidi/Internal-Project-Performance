@@ -38,10 +38,12 @@ import { RootState } from "../../../stores/store";
 import { styled } from '@mui/styles';
 import ProjectSelector from '../../ui/ProjectSelector';
 import Cookies from "js-cookie";
-
+import { motion, AnimatePresence } from 'framer-motion';
+import { formatDistanceToNow } from 'date-fns';
 import { io, Socket } from 'socket.io-client';
 import CustomButton from '../../ui/CustomButton';
-
+import AssignmentIcon from '@mui/icons-material/Assignment';
+import GroupIcon from '@mui/icons-material/Group';
 interface NavbarProps {
   onToggleCollapse: () => void;
   collapsed : boolean;
@@ -52,6 +54,7 @@ interface Notification {
   message: string;
   data?: any;
   timestamp: Date;
+  read: boolean;
 }
 
 const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
@@ -86,7 +89,6 @@ const Navbar: React.FC<NavbarProps> = ({ onToggleCollapse }) => {
 
   
 // Notifications 
-
 
 const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -132,6 +134,26 @@ useEffect(() => {
   };
 }, []);
 
+const handleNotification = (payload: any) => {
+  setNotifications(prev => [
+    {
+      ...payload,
+      timestamp: new Date(),
+      read: false
+    },
+    ...prev
+  ]);
+  setUnreadCount(prev => prev + 1);
+};
+
+
+const markAsRead = (index: number) => {
+  setNotifications(prev =>
+    prev.map((n, i) => (i === index ? { ...n, read: true } : n))
+  );
+  setUnreadCount(prev => Math.max(0, prev - 1));
+};
+
 
   const handleNotificationClick = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationMenuAnchor(event.currentTarget);
@@ -139,8 +161,20 @@ useEffect(() => {
   };
 
   const notificationIcon = (
-    <IconButton color="inherit" onClick={handleNotificationClick}>
-      <Badge badgeContent={unreadCount} color="error">
+    <IconButton 
+      color="inherit" 
+      onClick={handleNotificationClick}
+      component={motion.div}
+      whileHover={{ scale: 1.05 }}
+      whileTap={{ scale: 0.95 }}
+    >
+      <Badge 
+        badgeContent={unreadCount} 
+        color="error"
+        component={motion.span}
+        animate={{ scale: unreadCount > 0 ? [1, 1.2, 1] : 1 }}
+        transition={{ duration: 0.3 }}
+      >
         <NotificationsIcon />
       </Badge>
     </IconButton>
@@ -192,6 +226,15 @@ useEffect(() => {
                     View Project
                   </CustomButton>
                 )}
+                               
+                  <CustomButton 
+                    size="small" 
+                    sx={{ mt: 1 }}
+                    onClick={() => window.location.href = `/tasks`}
+                  >
+                    View Tasks
+                  </CustomButton>
+
               </Box>
             </MenuItem>
             {index < notifications.length - 1 && <Divider />}
@@ -237,35 +280,75 @@ useEffect(() => {
          
 
             {/* Search Bar */}
-            <Box sx={{ display: 'flex', alignItems: 'center', backgroundColor: '#333', borderRadius: 1, width: 280, mx: 2,  //  border: "3px solid rgba(255,255,255,0.2)", // thin subtle border
- }}>
-              <TextField
-                variant="standard"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={handleSearchChange}
-                sx={{
-                  width: '100%',
-                  '& input': { padding: '4px 0', color: 'white' },
-                  border: 'white'
-
-                
-                }}
-                InputProps={{
-                  disableUnderline: true,
-                  endAdornment: (
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {searchTerm && (
-                        <IconButton onClick={clearSearch} sx={{ padding: 0 }}>
-                          <ClearIcon sx={{ color: 'white' }} />
-                        </IconButton>
-                      )}
-                      <SearchIcon sx={{ color: 'white' }} />
-                    </Box>
-                  ),
-                }}
-              />
-            </Box>
+{/* Search Bar */}
+{/* Search Bar */}
+<Box sx={{ 
+  display: 'flex', 
+  alignItems: 'center', 
+  borderRadius: '10px', // More rounded corners
+  width: 280, 
+  mx: 2,
+  border: '1px solid rgb(255, 255, 255)', // Subtle border
+  transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+  '&:hover': {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    borderColor: 'rgba(255,255,255,0.5)'
+  },
+  '&:focus-within': {
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    borderColor: 'rgba(255,255,255,0.8)',
+    boxShadow: '0 0 0 2px rgba(255,255,255,0.1)' // Glow effect
+  }
+}}>
+  <TextField
+    variant="standard"
+    placeholder="Search..."
+    value={searchTerm}
+    onChange={handleSearchChange}
+    sx={{
+      width: '100%',
+      '& input': { 
+        padding: '8px 16px', // More padding
+        color: 'white',
+        fontSize: '0.9rem',
+        '&::placeholder': {
+          color: 'rgb(255, 255, 255)', // Better placeholder contrast
+          fontSize: '0.9rem'
+        }
+      }
+    }}
+    InputProps={{
+      disableUnderline: true,
+      startAdornment: (
+        <SearchIcon sx={{ 
+          color: 'rgb(255, 253, 255)', 
+          ml: 1.5,
+          mr: 1 
+        }} />
+      ),
+      endAdornment: (
+        <Box sx={{ display: 'flex', alignItems: 'center', mr: 1.5 }}>
+          {searchTerm && (
+            <IconButton 
+              onClick={clearSearch} 
+              sx={{ 
+                padding: 0.5,
+                '&:hover': {
+                  backgroundColor: 'rgb(255, 255, 255)'
+                }
+              }}
+            >
+              <ClearIcon sx={{ 
+                color: 'rgba(255,255,255,0.6)',
+                fontSize: '1.2rem' 
+              }} />
+            </IconButton>
+          )}
+        </Box>
+      ),
+    }}
+  />
+</Box>
 
             {/* Notifications & Settings */}
             {notificationIcon}

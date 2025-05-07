@@ -234,7 +234,14 @@ const handleCvUpload = async (file: File) => {
       )
     );
   };
-
+  const iconButtonStyles = {
+    color: '#ffffff',
+    backgroundColor: '#333333',
+    '&:hover': {
+      backgroundColor: '#1a1a1a',
+      color: '#ffffff'
+    }
+  };
   // Sort results by relevance
   const sortedResults = matchSorter(searchResults, searchQuery, {
     keys: ['name', 'description', 'category'],
@@ -438,6 +445,14 @@ const handleCvUpload = async (file: File) => {
             onClick={clearSearch}
             disabled={!searchQuery}
             startIcon={<ClearIcon />}
+            sx={{ 
+              color: '#333333',
+              borderColor: '#333333',
+              '&:hover': {
+                borderColor: '#1a1a1a',
+                backgroundColor: 'rgba(51, 51, 51, 0.04)'
+              }
+            }}
           >
             Clear Search
           </Button>
@@ -555,35 +570,34 @@ const handleCvUpload = async (file: File) => {
                           </Box>
                         } 
                         secondary={
-                          <Tooltip title={skill.description || ''} arrow>
-                            <Typography 
-                              variant="body2" 
-                              color="text.secondary" 
-                              sx={{ 
-                                mt: 0.5,
+                          <Box
+                            sx={{
+                              display: 'block',
+                              width: '100%', // Add explicit width
+                              maxHeight: '4.5em', // 3 lines * 1.5 line-height
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              WebkitBoxOrient: 'vertical',
+                              WebkitLineClamp: 3,
+                            }}
+                          >
+                            <Typography
+                              component="div"
+                              variant="body2"
+                              sx={{
                                 display: '-webkit-box',
-                                WebkitLineClamp: 2,
-                                WebkitBoxOrient: 'vertical',
-                                overflow: 'hidden',
-                                fontSize: { xs: '0.8rem', md: '0.9rem' }
+                                lineHeight: 1.5,
+                                color: theme.palette.text.secondary
                               }}
                             >
                               {getHighlightedText(skill.description || 'No description available', searchQuery)}
                             </Typography>
-                          </Tooltip>
+                          </Box>
                         }
                       />
                       <IconButton 
                         onClick={() => handleAssignSkill(skill.uri!)}
-                        sx={{ 
-                          backgroundColor: 'primary.light',
-                          '&:hover': { 
-                            backgroundColor: 'primary.main',
-                            color: 'primary.contrastText',
-                            transform: 'rotate(90deg)'
-                          },
-                          transition: '0.3s all'
-                        }}
+                        sx={iconButtonStyles} // Apply updated styles
                       >
                         <AddIcon fontSize="small" />
                       </IconButton>
@@ -705,7 +719,7 @@ const handleCvUpload = async (file: File) => {
         color="primary"
         component="span"
         startIcon={<CloudUploadIcon />}
-        sx={{ 
+        sx={{  backgroundColor: '#333333',
           px: 4,
           py: 1.5,
           borderRadius: 50,

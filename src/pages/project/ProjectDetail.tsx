@@ -21,7 +21,7 @@ import {
   Tooltip,
   Badge,
   styled,
-  LinearProgress,
+  LinearProgress,alpha
 } from '@mui/material';
 import { useParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
@@ -38,7 +38,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TaskAltIcon from '@mui/icons-material/TaskAlt';
 import SpeedIcon from '@mui/icons-material/Speed';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-
+import WarningIcon from '@mui/icons-material/Warning';
+import DangerousIcon from '@mui/icons-material/Dangerous';
 const locales = {
   'en-US': enUS,
 };
@@ -65,7 +66,8 @@ const ProjectDetail: React.FC = () => {
   const [expandedTimeline, setExpandedTimeline] = useState(true);
   const [expandedTeam, setExpandedTeam] = useState(true);
   const [expandedSkills, setExpandedSkills] = useState(true);
-
+  const EY_CONFIDENT_BLACK = '#333333';
+  const EY_OFF_BLACK = '#666666';
   useEffect(() => {
     dispatch(fetchProjects());
   }, [dispatch]);
@@ -114,12 +116,7 @@ const handleViewChange = useCallback((newView: View) => {
       </ContentLayout>
     );
   }
-  interface MetricCardProps {
-    icon: React.ReactNode;
-    title: string;
-    value: string;
-    color: string;
-  } 
+
   const KpiCard = styled(Paper)(({ theme }) => ({
     padding: theme.spacing(3),
     position: 'relative',
@@ -136,7 +133,7 @@ const handleViewChange = useCallback((newView: View) => {
       top: 0,
       width: '4px',
       height: '100%',
-      backgroundColor: '#333333',
+      backgroundColor: EY_CONFIDENT_BLACK, 
     },
   }));
 
@@ -223,23 +220,7 @@ const getGoals = () => {
   return [];
 };
 
-const MetricCard: React.FC<MetricCardProps> = ({ icon, title, value, color }) => (
-  <Paper sx={{
-    p: 2,
-    height: '100%',
-    borderLeft: `4px solid ${color}`,
-    transition: '0.3s',
-    '&:hover': { transform: 'translateY(-2px)' }
-  }}>
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-      <Box sx={{ color }}>{icon}</Box>
-      <Box>
-        <Typography variant="subtitle2" color="text.secondary">{title}</Typography>
-        <Typography variant="h5" fontWeight={600}>{value}</Typography>
-      </Box>
-    </Box>
-  </Paper>
-);
+
 
 const goals = getGoals();
 
@@ -251,19 +232,31 @@ const goals = getGoals();
   return (
     <ContentLayout>
       <Paper 
-        elevation={0} 
-        sx={{ 
-          p: 4, 
-          borderRadius: 3, 
-          backgroundColor: '#fff',
-          border: `1px solid ${theme.palette.divider}`,
-        }}
-      >
-        <Box sx={{ mb: 3 }}>
-          <Typography variant="h4" fontWeight={700} gutterBottom sx={{ color: theme.palette.text.primary }}>
-            {project.projectName}
-          </Typography>
-
+         elevation={0} 
+         sx={{ 
+           p: 4, 
+           borderRadius: 4,
+           background: `linear-gradient(145deg, ${alpha(theme.palette.background.default, 0.8)}, ${theme.palette.background.paper})`,
+           backdropFilter: 'blur(20px)',
+           border: `1px solid ${alpha(theme.palette.divider, 0.2)}`,
+           boxShadow: '0px 12px 48px rgba(0, 0, 0, 0.06)'
+         }}
+       >
+          <Box sx={{ mb: 4 }}>
+            <Typography variant="h3" fontWeight={800} gutterBottom sx={{ 
+              color: theme.palette.text.primary,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2
+            }}>
+              <Box sx={{
+                width: 8,
+                height: 40,
+                bgcolor: theme.palette.primary.main,
+                borderRadius: 2
+              }} />
+              {project.projectName}
+            </Typography>
           <Stack direction="row" spacing={1} sx={{ mb: 2 }}>
             <Chip 
               label={project.status} 
@@ -305,9 +298,16 @@ const goals = getGoals();
                   <LinearProgress 
                     variant="determinate" 
                     value={65} 
-                    sx={{ height: 8, borderRadius: 4 }}
-                    color="primary"
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      backgroundColor: EY_OFF_BLACK,
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: '#ffe600'
+                      }
+                    }}
                   />
+
                 </Stack>
               </KpiCard>
             </Grid>
@@ -327,9 +327,16 @@ const goals = getGoals();
                   <LinearProgress 
                     variant="determinate" 
                     value={timelineProgress} 
-                    sx={{ height: 8, borderRadius: 4 }}
-                    color="secondary"
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      backgroundColor: EY_OFF_BLACK,
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: '#ffe600',
+                      }
+                    }}
                   />
+
                 </Stack>
               </KpiCard>
             </Grid>
@@ -349,8 +356,14 @@ const goals = getGoals();
                   <LinearProgress 
                     variant="determinate" 
                     value={(127/200)*100} 
-                    sx={{ height: 8, borderRadius: 4 }}
-                    color="success"
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      backgroundColor: EY_OFF_BLACK,
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: '#ffe600'
+                      }
+                    }}
                   />
                 </Stack>
               </KpiCard>
@@ -371,8 +384,14 @@ const goals = getGoals();
                   <LinearProgress 
                     variant="determinate" 
                     value={75} 
-                    sx={{ height: 8, borderRadius: 4 }}
-                    color="warning"
+                    sx={{ 
+                      height: 8, 
+                      borderRadius: 4,
+                      backgroundColor: EY_OFF_BLACK,
+                      '& .MuiLinearProgress-bar': {
+                        backgroundColor: EY_CONFIDENT_BLACK
+                      }
+                    }}
                   />
                 </Stack>
               </KpiCard>
@@ -400,15 +419,132 @@ const goals = getGoals();
                                   sx={{ 
                                     height: 8, 
                                     borderRadius: 4,
-                                    backgroundColor: theme.palette.grey[200],
+                                    backgroundColor: EY_OFF_BLACK,
                                     '& .MuiLinearProgress-bar': {
-                                      backgroundColor: theme.palette.warning.main
+                                      backgroundColor: EY_CONFIDENT_BLACK
                                     }
                                   }}
                                 />
                               </Stack>
                             </KpiCard>
                           </Grid>
+                          <Grid item xs={12} md={3}>
+    <KpiCard elevation={2}>
+      <Stack spacing={1}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <WarningIcon fontSize="large" color="error" />
+          <Box>
+            <Typography variant="subtitle1" color="text.secondary">
+              Project Risks
+            </Typography>
+            <Typography variant="h5" fontWeight={600}>
+              8
+              <Typography component="span" variant="body2" color="text.secondary">
+                /10 resolved
+              </Typography>
+            </Typography>
+          </Box>
+        </Box>
+        <LinearProgress 
+          variant="determinate" 
+          value={(8/10)*100} 
+          sx={{ 
+            height: 8, 
+            borderRadius: 4,
+            backgroundColor: EY_OFF_BLACK,
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: '#ffe600'
+            }
+          }}
+        />
+      </Stack>
+    </KpiCard>
+  </Grid>
+
+  {/* Risk Severity Card */}
+  <Grid item xs={12} md={3}>
+    <KpiCard elevation={2}>
+      <Stack spacing={1}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <DangerousIcon fontSize="large" color="warning" />
+          <Box>
+            <Typography variant="subtitle1" color="text.secondary">
+              High Severity Risks
+            </Typography>
+            <Typography variant="h5" fontWeight={600}>
+              3
+              <Typography component="span" variant="body2" color="text.secondary">
+                active
+              </Typography>
+            </Typography>
+          </Box>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Chip 
+            label="Critical" 
+            size="small" 
+            sx={{ 
+              backgroundColor: theme.palette.error.dark,
+              color: 'white',
+              fontWeight: 600
+            }} 
+          />
+          <Chip 
+            label="High" 
+            size="small" 
+            sx={{ 
+              backgroundColor: theme.palette.error.light,
+              color: 'white',
+              fontWeight: 600
+            }} 
+          />
+        </Box>
+      </Stack>
+    </KpiCard>
+  </Grid>
+
+  {/* Risk Breakdown Card */}
+  <Grid item xs={12} md={3}>
+    <KpiCard elevation={2}>
+      <Stack spacing={1}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+          <Flag fontSize="large" color="action" />
+          <Box>
+            <Typography variant="subtitle1" color="text.secondary">
+              Risk Breakdown
+            </Typography>
+            <Typography variant="caption" component="div">
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Technical:</span> 
+                <strong>4</strong>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Schedule:</span> 
+                <strong>3</strong>
+              </Box>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Budget:</span> 
+                <strong>1</strong>
+              </Box>
+            </Typography>
+          </Box>
+        </Box>
+        <LinearProgress 
+          variant="determinate" 
+          value={60}
+          color="warning"
+          sx={{ 
+            height: 8, 
+            borderRadius: 4,
+            backgroundColor: EY_OFF_BLACK,
+            '& .MuiLinearProgress-bar': {
+              backgroundColor: '#ffe600'
+            }
+          }}
+        />
+      </Stack>
+    </KpiCard>
+  </Grid>
                             </Grid>
         </Box>
                     {/* Team Assignment Section */}
