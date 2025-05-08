@@ -1,9 +1,22 @@
-import { Box, Grid, Typography, TextField, Divider } from '@mui/material';
+import { Box, Grid, Typography, TextField, Divider, MenuItem } from '@mui/material';
 import CustomButton from './CustomButton';
+import { Position } from '../../features/users/types/user-position.enum';
 
-const fields = ['id', 'fullName', 'email', 'role', 'phone', 'mobile', 'address'];
+const fields = ['id', 'fullName', 'email', 'role', 'position', 'phone', 'mobile', 'address'];
 
-const ProfileDetails = ({ isEditing, editableFields, setEditableFields, handleSaveChanges }: any) => (
+interface ProfileDetailsProps {
+  isEditing: boolean;
+  editableFields: any;
+  setEditableFields: (fields: any) => void;
+  handleSaveChanges: () => void;
+}
+
+const ProfileDetails = ({
+  isEditing,
+  editableFields,
+  setEditableFields,
+  handleSaveChanges
+}: ProfileDetailsProps) => (
   <>
     <Typography fontWeight="bold" mb={2}>User Details</Typography>
     {fields.map((field) => (
@@ -15,18 +28,38 @@ const ProfileDetails = ({ isEditing, editableFields, setEditableFields, handleSa
         </Grid>
         <Grid item xs={12} sm={8}>
           {isEditing ? (
-            <TextField
-              fullWidth
-              variant="outlined"
-              value={editableFields[field]}
-              onChange={(e) =>
-                setEditableFields({ ...editableFields, [field]: e.target.value })
-              }
-              size="small"
-            />
+            field === 'position' ? (
+              <TextField
+                select
+                fullWidth
+                variant="outlined"
+                value={editableFields[field] || ''}
+                onChange={(e) => 
+                  setEditableFields({ ...editableFields, [field]: e.target.value })
+                }
+                size="small"
+              >
+                {Object.values(Position).map((position) => (
+                  <MenuItem key={position} value={position}>
+                    {position}
+                  </MenuItem>
+                ))}
+              </TextField>
+            ) : (
+              <TextField
+                fullWidth
+                variant="outlined"
+                value={editableFields[field]}
+                onChange={(e) =>
+                  setEditableFields({ ...editableFields, [field]: e.target.value })
+                }
+                size="small"
+                disabled={field === 'id' || field === 'role'} // Disable non-editable fields
+              />
+            )
           ) : (
             <Typography variant="body2" color="text.secondary">
-              {editableFields[field]}
+              {editableFields[field] || 'Not specified'}
             </Typography>
           )}
         </Grid>

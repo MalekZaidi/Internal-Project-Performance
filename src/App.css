@@ -187,3 +187,8 @@ body {
   0% { transform: translate(0, 0); }
   100% { transform: translate(calc(var(--x) * 1px), calc(var(--y) * 1px)); }
 }
+html, body, #root {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}

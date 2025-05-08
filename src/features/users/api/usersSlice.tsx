@@ -3,6 +3,7 @@ import Cookies from 'js-cookie';
 import { RootState } from '../../../stores/store';
 import { Role } from '../types/user-role.enum';
 import { Skill } from '../../skills/types/skillTypes';
+import { Position } from '../types/user-position.enum';
 export interface User {
   _id: string;
   fullName: string;
@@ -13,6 +14,8 @@ export interface User {
   lastLogin?: string;
   __v?: number;
   skills: Skill[];
+  position?: Position;
+
 }
 
 interface UserState {

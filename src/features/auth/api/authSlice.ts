@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import Cookies from "js-cookie";
 import { RootState } from "../../../stores/store";
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react"
 
 interface AuthState {
   user: any;
@@ -94,6 +95,20 @@ export const authSlice = createSlice({
       })
   },
 });
-
+export const authApi = createApi({
+  reducerPath: 'authApi',
+  baseQuery: fetchBaseQuery({ /* … */ }),
+  endpoints: (builder) => ({
+    changePassword: builder.mutation<void, { currentPassword: string; newPassword: string }>({
+      query: (body) => ({
+        url: '/change-password',
+        method: 'POST',
+        body,
+      }),
+    }),
+  }),
+})
 export const { logout } = authSlice.actions;
+export const { useChangePasswordMutation } = authApi
+
 export default authSlice.reducer;

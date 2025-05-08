@@ -7,7 +7,8 @@ import ProfileHeader from '../../components/ui/ProfileHeader';
 import ProfileTabs from '../../components/ui/ProfileTabs';
 import ProfileDetails from '../../components/ui/ProfileDetails';
 import SkillsSection from '../../components/ui/SkillSection';
-import { useGetUserQuery } from '../../features/users/api/usersApi';
+import { useGetUserQuery, useUpdateUserMutation } from '../../features/users/api/usersApi';
+import ChangePasswordForm from '../../components/ui/ChangePasswordForm';
 
 const CardStyled = styled(Card)(({ theme }) => ({
   borderRadius: '12px',
@@ -30,11 +31,14 @@ const UserProfile = () => {
     id: '',
     email: '',
     fullName: '',
-    phone: '',
-    mobile: '',
-    address: '',
+    position: '',
     role: '',
   });
+
+  const { data: currentUser, refetch: refetchUser } = useGetUserQuery(user?._id || '', {
+    skip: !user?._id
+  });
+  const [updateUser] = useUpdateUserMutation();
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -46,9 +50,7 @@ const UserProfile = () => {
           role: profileData.role,
           email: profileData.login,
           fullName: profileData.fullName,
-          phone: '(097) 234-5678',
-          mobile: '(098) 765-4321',
-          address: 'Bay Area, San Francisco, CA',
+          position: profileData.position || '',
         });
       } catch (err) {
         console.error('Error loading profile', err);
@@ -59,12 +61,23 @@ const UserProfile = () => {
 
     loadProfile();
   }, []);
-  const { data: currentUser, refetch: refetchUser } = useGetUserQuery(user?._id || '', {
-    skip: !user?._id
-  });
-  const handleSaveChanges = () => {
-    console.log('Updated fields:', editableFields);
-    setIsEditing(false);
+
+  const handleSaveChanges = async () => {
+    try {
+      await updateUser({
+        id: editableFields.id,
+        data: {
+          fullName: editableFields.fullName,
+          position: editableFields.position
+        }
+      }).unwrap();
+      
+      await refetchUser();
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('Failed to update profile. Please try again.');
+    }
   };
 
   if (loading) {
@@ -85,7 +98,7 @@ const UserProfile = () => {
             <ProfileHeader
               fullName={editableFields.fullName}
               role={editableFields.role}
-              address={editableFields.address}
+              position={editableFields.position}
               isEditing={isEditing}
               onToggleEdit={() => setIsEditing(!isEditing)}
             />
@@ -105,17 +118,19 @@ const UserProfile = () => {
                 />
               )}
               {activeTab === 1 && <Box p={2}>Preferences settings go here.</Box>}
-              {activeTab === 2 && <Box p={2}>Security settings go here.</Box>}
+              {activeTab === 2 && (
+                <Box p={2}>
+                  <ChangePasswordForm />
+                </Box>
+              )}
             </CardContent>
           </CardStyled>
         </Grid>
 
-                  
-
         <Grid item xs={12}>
           <CardStyled>
             <CardContent>
-            <SkillsSection 
+              <SkillsSection 
                 userId={editableFields.id} 
                 userSkills={currentUser?.skills || []} 
                 refetchUser={refetchUser}

@@ -26,7 +26,9 @@ import {
   DialogTitle,
   DialogContent,
   Checkbox,
-  DialogActions
+  DialogActions,
+  Tabs,
+  Tab
 } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import AddIcon from '@mui/icons-material/Add';
@@ -36,7 +38,7 @@ import ClearIcon from '@mui/icons-material/Clear';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import StarIcon from '@mui/icons-material/Star';
 import { useSearchSkillsQuery } from '../../features/skills/api/skillsApi';
-import { useAssignSkillMutation, useRemoveSkillMutation } from '../../features/users/api/usersApi';
+import { useAssignSkillMutation, useConfirmCvDataMutation, useRemoveSkillMutation } from '../../features/users/api/usersApi';
 import { Skill } from '../../features/skills/types/skillTypes';
 import { matchSorter } from 'match-sorter';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
@@ -63,6 +65,21 @@ interface SkillsSectionProps {
   refetchUser: () => void;
 }
 
+interface CvResult {
+  skills: Skill[];
+  educations: Array<{
+    institution: string;
+    degree: string;
+    fieldOfStudy?: string;
+    startYear?: number;
+    endYear?: number;
+  }>;
+  certifications: Array<{
+    name: string;
+    issuer?: string;
+    year?: number;
+  }>;
+}
 const MotionChip = motion.create(Chip);
 const MotionListItem = motion.create(ListItem);
 
@@ -72,15 +89,30 @@ const SkillsSection = ({ userId, userSkills, refetchUser }: SkillsSectionProps) 
   const [searchQuery, setSearchQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const { data: searchResults = [], isLoading: isSearching } = useSearchSkillsQuery(searchQuery, {
-    skip: searchQuery.length < 2
-  });
+
   const [assignSkill] = useAssignSkillMutation();
   const [removeSkill] = useRemoveSkillMutation();
 
 
+
+
+  const [cvResults, setCvResults] = useState<CvResult>({ 
+    skills: [], 
+    educations: [], 
+    certifications: [] 
+  });
+  const [editedEducations, setEditedEducations] = useState<any[]>([]);
+  const [editedCerts, setEditedCerts] = useState<any[]>([]);
+  const [activeTab, setActiveTab] = useState(0);
+
+  const { data: searchResults = [], isLoading: isSearching } = useSearchSkillsQuery(searchQuery, {
+    skip: searchQuery.length < 2
+  });
+
+
+  const [confirmCvData] = useConfirmCvDataMutation();
+
   ////
-  const [cvResults, setCvResults] = useState<Skill[]>([]);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [showCvDialog, setShowCvDialog] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -101,30 +133,7 @@ const SkillsSection = ({ userId, userSkills, refetchUser }: SkillsSectionProps) 
     }
 
   //
-const handleConfirmSkills = async () => {
-  try {
-    const response = await fetch(
-      `${import.meta.env.VITE_BACK_API_URL_USERS}/${userId}/confirm-cv-skills`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({ skillIds: selectedSkills }),
-      }
-    );
-    
-    if (!response.ok) throw new Error('Confirmation failed');
-    
-    setShowCvDialog(false);
-    setSelectedSkills([]);
-    setCvResults([]); // Clear CV results
-    refetchUser(); // Refresh user data
-  } catch (error) {
-    setError(error.message);
-  }
-};
+
 const { getRootProps, getInputProps } = useDropzone({
   accept: {
     'application/pdf': ['.pdf'],
@@ -141,13 +150,15 @@ const { getRootProps, getInputProps } = useDropzone({
   }
 });
 
+
+
 const handleCvUpload = async (file: File) => {
   const formData = new FormData();
   formData.append('file', file);
   
   try {
     const response = await fetch(
-      `${import.meta.env.VITE_BACK_API_URL_USERS}/${userId}/upload-cv`,
+      `${import.meta.env.VITE_BACK_API_URL_USERS}/${userId}/upload-cv2`,
       {
         method: 'POST',
         headers: {
@@ -160,14 +171,157 @@ const handleCvUpload = async (file: File) => {
     if (!response.ok) throw new Error('Upload failed');
     
     const result = await response.json();
-    setCvResults(result.skills);
-    setShowCvDialog(true);
-    setSelectedSkills([]);
+    if (result.data) {
+      // Map Affinda response to your CvResult structure
+      const mappedData = {
+        skills: result.data.skills?.map((s: any) => ({
+          _id: s._id || s.id, // Ensure ID exists
+          name: s.name,
+          description: s.description || 'No description',
+          category: s.category
+        })) || [],
+        educations: result.data.educations?.map((edu: any) => ({
+          institution: edu.organization || edu.institution,
+          degree: edu.accreditation?.education || edu.degree,
+          fieldOfStudy: edu.accreditation?.educationMajor || edu.fieldOfStudy,
+          startYear: edu.dates?.startDate?.year || edu.startYear,
+          endYear: edu.dates?.endDate?.year || edu.endYear
+        })) || [],
+        certifications: result.data.certifications?.map((cert: any) => ({
+          name: cert.name,
+          issuer: cert.issuer,
+          year: cert.date?.year || cert.year
+        })) || []
+      };
+
+      setCvResults(mappedData);
+      setEditedEducations(mappedData.educations);
+      setEditedCerts(mappedData.certifications);
+      setShowCvDialog(true);
+    }
   } catch (error) {
     setError(error.message);
   }
 };
 
+const handleConfirmSkills = async () => {
+  try {
+    await confirmCvData({
+      userId,
+      data: {
+        skillIds: selectedSkills,
+        educations: editedEducations.filter(e => e.institution && e.degree),
+        certifications: editedCerts.filter(c => c.name)
+      }
+    }).unwrap();
+    
+    setShowCvDialog(false);
+    setSelectedSkills([]);
+    setCvResults({ skills: [], educations: [], certifications: [] });
+    refetchUser();
+  } catch (error) {
+    setError(error.message);
+  }
+};
+
+const handleEducationChange = (index: number, field: string, value: any) => {
+  const updated = [...editedEducations];
+  updated[index] = { ...updated[index], [field]: value };
+  setEditedEducations(updated);
+};
+
+const handleCertificationChange = (index: number, field: string, value: any) => {
+  const updated = [...editedCerts];
+  updated[index] = { ...updated[index], [field]: value };
+  setEditedCerts(updated);
+};
+
+const renderEducationFields = () => (
+  <Box mt={3}>
+    <Typography variant="h6" gutterBottom>Education</Typography>
+    {editedEducations.map((edu, index) => (
+      <Box key={index} mb={2} p={2} border={1} borderColor="divider" borderRadius={2}>
+        <TextField
+          fullWidth
+          label="Institution *"
+          value={edu.institution || ''}
+          onChange={(e) => handleEducationChange(index, 'institution', e.target.value)}
+          margin="dense"
+          error={!edu.institution}
+          helperText={!edu.institution && "Required field"}
+        />
+        <TextField
+          fullWidth
+          label="Degree *"
+          value={edu.degree || ''}
+          onChange={(e) => handleEducationChange(index, 'degree', e.target.value)}
+          margin="dense"
+          error={!edu.degree}
+          helperText={!edu.degree && "Required field"}
+        />
+        <TextField
+          fullWidth
+          label="Field of Study"
+          value={edu.fieldOfStudy || ''}
+          onChange={(e) => handleEducationChange(index, 'fieldOfStudy', e.target.value)}
+          margin="dense"
+        />
+        <Box display="flex" gap={2} mt={2}>
+          <TextField
+            label="Start Year"
+            type="number"
+            value={edu.startYear || ''}
+            onChange={(e) => handleEducationChange(index, 'startYear', parseInt(e.target.value))}
+            margin="dense"
+            inputProps={{ min: 1900, max: new Date().getFullYear() }}
+          />
+          <TextField
+            label="End Year"
+            type="number"
+            value={edu.endYear || ''}
+            onChange={(e) => handleEducationChange(index, 'endYear', parseInt(e.target.value))}
+            margin="dense"
+            inputProps={{ min: 1900, max: new Date().getFullYear() }}
+          />
+        </Box>
+      </Box>
+    ))}
+  </Box>
+);
+
+const renderCertificationFields = () => (
+  <Box mt={3}>
+    <Typography variant="h6" gutterBottom>Certifications</Typography>
+    {editedCerts.map((cert, index) => (
+      <Box key={index} mb={2} p={2} border={1} borderColor="divider" borderRadius={2}>
+        <TextField
+          fullWidth
+          label="Name *"
+          value={cert.name || ''}
+          onChange={(e) => handleCertificationChange(index, 'name', e.target.value)}
+          margin="dense"
+          error={!cert.name}
+          helperText={!cert.name && "Required field"}
+        />
+        <TextField
+          fullWidth
+          label="Issuer"
+          value={cert.issuer || ''}
+          onChange={(e) => handleCertificationChange(index, 'issuer', e.target.value)}
+          margin="dense"
+        />
+        <TextField
+          label="Year"
+          type="number"
+          value={cert.year || ''}
+          onChange={(e) => handleCertificationChange(index, 'year', parseInt(e.target.value))}
+          margin="dense"
+          inputProps={{ min: 1900, max: new Date().getFullYear() }}
+        />
+      </Box>
+    ))}
+  </Box>
+);
 
 
 
@@ -751,7 +905,7 @@ const handleCvUpload = async (file: File) => {
         Browse Files
       </Button>
 
-      {cvResults.length > 0 && (
+      {cvResults.skills.length > 0 && (
         <Box mt={4} sx={{ 
           display: 'flex',
           alignItems: 'center',
@@ -762,7 +916,7 @@ const handleCvUpload = async (file: File) => {
           <CheckCircleIcon color="success" sx={{ fontSize: 32 }} />
           <Box>
             <Typography variant="body1" fontWeight={500}>
-              {cvResults.length} skills detected
+              {cvResults.skills.length} skills detected
             </Typography>
             <Typography variant="caption" color="textSecondary">
               Ready to map to your profile
@@ -776,7 +930,7 @@ const handleCvUpload = async (file: File) => {
         </Box>
 
         {/* File preview section */}
-        {cvResults.length > 0 && (
+        {cvResults.skills.length > 0 && (
     <Box mt={2} sx={{ 
       display: 'flex',
       alignItems: 'center',
@@ -795,7 +949,7 @@ const handleCvUpload = async (file: File) => {
           CV Analysis Complete
         </Typography>
         <Typography variant="caption" color="textSecondary">
-          Found {cvResults.length} relevant skills
+          Found {cvResults.skills.length} relevant skills
         </Typography>
       </Box>
     </Box>
@@ -803,62 +957,118 @@ const handleCvUpload = async (file: File) => {
 
         {/* CV Skills Dialog */}
         {showCvDialog && (
-          <Dialog 
-            open={showCvDialog} 
-            onClose={() => {
-              setShowCvDialog(false);
-              setCvResults([]);
-              setSelectedSkills([]);
-            }}
-            fullWidth 
-            maxWidth="md"
-          >
+          <Dialog fullWidth maxWidth="md" open={showCvDialog} onClose={() => setShowCvDialog(false)}>
             <DialogTitle>
               <Box display="flex" alignItems="center" gap={2}>
                 <CloudUploadIcon fontSize="large" />
-                <Typography variant="h6">Detected Skills from CV</Typography>
+                <Typography variant="h6">Parsed CV Data</Typography>
               </Box>
             </DialogTitle>
             <DialogContent>
-              <Typography variant="body1" gutterBottom>
-                {cvResults.length} skills found. Select which ones to add:
-              </Typography>
-              
-              <List sx={{ maxHeight: 400, overflow: 'auto' }}>
-                {cvResults.map(skill => (
-                  <ListItem 
-                    key={skill._id}
-                    secondaryAction={
-                      <Checkbox
-                        edge="end"
-                        checked={selectedSkills.includes(skill._id)}
-                        onChange={() => handleSkillToggle(skill._id)}
-                      />
-                    }
-                  >
-                    <ListItemText
-                      primary={skill.name}
-                      secondary={skill.description || 'No description available'}
-                    />
-                  </ListItem>
-                ))}
-              </List>
+              <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+                <Tabs value={activeTab} onChange={(e, newValue) => setActiveTab(newValue)}>
+                  <Tab label={`Skills (${cvResults.skills.length})`} />
+                  <Tab label={`Education (${cvResults.educations.length})`} />
+                  <Tab label={`Certifications (${cvResults.certifications.length})`} />
+                </Tabs>
+              </Box>
+
+              <Box mt={3}>
+              {activeTab === 0 && (
+  <List sx={{ maxHeight: 400, overflow: 'auto' }}>
+    {cvResults.skills.map(skill => (
+      <ListItem 
+        key={skill._id}
+        secondaryAction={
+          <Checkbox
+            edge="end"
+            checked={selectedSkills.includes(skill._id)}
+            onChange={() => handleSkillToggle(skill._id)}
+          />
+        }
+      >
+        <ListItemText
+          primary={skill.name}
+          secondary={skill.description || 'No description available'}
+        />
+      </ListItem>
+    ))}
+    {cvResults.skills.length === 0 && (
+      <Typography variant="body2" color="textSecondary" sx={{ p: 2 }}>
+        No skills detected in the CV
+      </Typography>
+    )}
+  </List>
+)}
+               {activeTab === 1 && (
+  <Box mt={3}>
+    <Typography variant="h6" gutterBottom>Education</Typography>
+    {cvResults.educations.map((edu, index) => (
+      <Box key={index} mb={2} p={2} border={1} borderColor="divider" borderRadius={2}>
+        <Typography variant="subtitle1">{edu.institution}</Typography>
+        <Typography variant="body2">{edu.degree}</Typography>
+        {edu.fieldOfStudy && (
+          <Typography variant="caption" color="textSecondary">
+            {edu.fieldOfStudy}
+          </Typography>
+        )}
+        {edu.startYear && edu.endYear && (
+          <Typography variant="caption" color="textSecondary" display="block">
+            {edu.startYear} - {edu.endYear}
+          </Typography>
+        )}
+      </Box>
+    ))}
+    {cvResults.educations.length === 0 && (
+      <Typography variant="body2" color="textSecondary">
+        No education information found
+      </Typography>
+    )}
+  </Box>
+)}
+                {activeTab === 2 && (
+  <Box mt={3}>
+    <Typography variant="h6" gutterBottom>Certifications</Typography>
+    {cvResults.certifications.map((cert, index) => (
+      <Box key={index} mb={2} p={2} border={1} borderColor="divider" borderRadius={2}>
+        <Typography variant="subtitle1">{cert.name}</Typography>
+        {cert.issuer && (
+          <Typography variant="body2">{cert.issuer}</Typography>
+        )}
+        {cert.year && (
+          <Typography variant="caption" color="textSecondary">
+            {cert.year}
+          </Typography>
+        )}
+      </Box>
+    ))}
+    {cvResults.certifications.length === 0 && (
+      <Typography variant="body2" color="textSecondary">
+        No certifications found
+      </Typography>
+    )}
+  </Box>
+)}
+              </Box>
             </DialogContent>
             <DialogActions>
               <Button onClick={() => setShowCvDialog(false)}>Cancel</Button>
               <Button 
                 variant="contained" 
                 onClick={handleConfirmSkills}
-                disabled={selectedSkills.length === 0}
+                disabled={
+                  (activeTab === 0 && selectedSkills.length === 0) ||
+                  (activeTab === 1 && editedEducations.some(e => !e.institution || !e.degree)) ||
+                  (activeTab === 2 && editedCerts.some(c => !c.name))
+                }
               >
-                Add Selected ({selectedSkills.length})
+                Confirm Data
               </Button>
             </DialogActions>
           </Dialog>
         )}
       </Box>
     </Paper>
-    
   );
 };
 

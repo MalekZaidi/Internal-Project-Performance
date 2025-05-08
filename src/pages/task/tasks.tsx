@@ -142,67 +142,69 @@ const TaskPage = () => {
     const sourceStatus = result.source.droppableId;
     const destStatus = result.destination.droppableId;
     const taskId = result.draggableId;
-    const oldIndex = result.source.index;
     const newIndex = result.destination.index;
   
-    // Find the moved task
-    const movedTask = localTasks.find(t => t._id === taskId);
+    // Create a new array to avoid mutation
+    const updatedTasks = [...localTasks];
+    const movedTask = updatedTasks.find(t => t._id === taskId);
     if (!movedTask) return;
   
-    // Create new tasks array
-    const newTasks = [...localTasks];
-    
-    // Remove from old position
-    const sourceTasks = newTasks.filter(t => t.status === sourceStatus);
+    // Remove from original position
+    const sourceTasks = updatedTasks.filter(t => t.status === sourceStatus);
     const movedTaskIndex = sourceTasks.findIndex(t => t._id === taskId);
     if (movedTaskIndex > -1) {
-      newTasks.splice(newTasks.indexOf(sourceTasks[movedTaskIndex]), 1);
+      updatedTasks.splice(updatedTasks.indexOf(sourceTasks[movedTaskIndex]), 1);
     }
   
-    // Update task status and order
-    const updatedTask = { 
-      ...movedTask, 
+    // Create new task object with updated status
+    const taskWithNewStatus = { 
+      ...movedTask,
       status: destStatus,
       order: newIndex 
     };
   
     // Add to new position
-    const destTasks = newTasks.filter(t => t.status === destStatus);
-    const insertIndex = destTasks.reduce((acc, task, index) => 
-      task.order <= newIndex ? index + 1 : acc, 0
-    );
-    
-    newTasks.splice(insertIndex, 0, updatedTask);
+    updatedTasks.push(taskWithNewStatus);
   
-    // Update orders for all tasks in destination column
-    newTasks
-      .filter(t => t.status === destStatus)
-      .forEach((task, index) => {
-        task.order = index;
-      });
+    // Recalculate orders for all tasks in both source and destination columns
+    const finalTasks = updatedTasks.map((task, index) => {
+      // For tasks in the source column (if different from destination)
+      if (task.status === sourceStatus && sourceStatus !== destStatus) {
+        return { ...task, order: index };
+      }
+      // For tasks in the destination column
+      if (task.status === destStatus) {
+        return { ...task, order: index };
+      }
+      return task;
+    });
   
     try {
-      // Optimistic update
-      setLocalTasks(newTasks);
+      // Optimistic update with new array
+      setLocalTasks(finalTasks);
   
-      // Update backend
-      await updateTask({
-        id: taskId,
-        data: {
-          status: destStatus,
-          order: newIndex
-        }
-      }).unwrap()
-  
-      // Update orders for other tasks in destination column
-      await Promise.all(
-        newTasks
-          .filter(t => t.status === destStatus && t._id !== taskId)
+      // Update backend with all changes
+      await Promise.all([
+        // Update moved task
+        updateTask({
+          id: taskId,
+          data: {
+            status: destStatus,
+            order: newIndex
+          }
+        }).unwrap(),
+        
+        // Update all other tasks in both columns
+        ...finalTasks
+          .filter(t => t.status === sourceStatus || t.status === destStatus)
           .map(task => updateTask({
             id: task._id,
-            data: { order: task.order }
+            data: { 
+              status: task.status,
+              order: task.order 
+            }
           }))
-      );
+      ]);
   
       refetch();
     } catch (error) {
@@ -771,18 +773,85 @@ for (const key of Object.keys(groupedTasks)) {
   <Alert severity="info" sx={{ mb: 3 }} icon={<ErrorOutline />}>
     Please select a project to view and manage tasks
   </Alert>
-)}
+)} 
+<Paper elevation={0} sx={{ p: 2, mb: 3, border: "1px solid", borderColor: "divider" }}>
+  <Grid container spacing={2} alignItems="center">
+    <Grid item xs={12} md={6}>
+      <TextField
+        fullWidth
+        placeholder="Search tasks..."
+        value={searchQuery}
+        onChange={(e) => setSearchQuery(e.target.value)}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Search />
+            </InputAdornment>
+          ),
+        }}
+        size="small"
+      />
+    </Grid>
+    <Grid item xs={6} md={3}>
+      <TextField
+        select
+        fullWidth
+        label="Filter by Status"
+        value={filterStatus || ""}
+        onChange={(e) => setFilterStatus(e.target.value || null)}
+        size="small"
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <FilterList fontSize="small" />
+            </InputAdornment>
+          ),
+        }}
+      >
+        <MenuItem value="">All Statuses</MenuItem>
+        {STATUS_OPTIONS.map((option) => (
+          <MenuItem key={option.value} value={option.value}>
+            <Box sx={{ display: "flex", alignItems: "center" }}>
+              {React.cloneElement(option.icon, { sx: { mr: 1 } })}
+              {option.label}
+            </Box>
+          </MenuItem>
+        ))}
+      </TextField>
+    </Grid>
+    <Grid item xs={6} md={3} sx={{ display: "flex", justifyContent: "flex-end" }}>
+<CustomButton
+variant="contained"
+startIcon={<Add />}
+onClick={() => {
+if (currentUser?.role === 'team_member') {
+setCurrentTask(prev => ({
+  ...prev,
+  assignedTo: currentUser._id,
+}));
+}
+setOpenModal(true);
+}}
+disabled={!selectedProjectId}
+fullWidth={isMobile}
+>
+New Task
+</CustomButton>
+    </Grid>
+  </Grid>
+</Paper>  
     { viewMode === 'board' && (
       <DragDropContext onDragEnd={handleDragEnd}>
+        <Box
+  sx={{
+    overflowX: { xs: 'auto', md: 'visible' },
+    width: '100%',
+    '&::-webkit-scrollbar': { height: 6 },
+    '&::-webkit-scrollbar-thumb': { bgcolor: 'grey.400', borderRadius: 3 },
+  }}
+> 
         <Grid container spacing={2}>
-{viewMode === 'board' && (
-  <Box sx={{ p: 2 }}>
-    <Typography variant="caption">
-      Debug: {localTasks.length} tasks loaded
-    </Typography>
-    <pre>{JSON.stringify(groupedTasks, null, 2)}</pre>
-  </Box>
-)}
+
             {STATUS_OPTIONS.map(({ value, label, icon }) => (
             
              <Grid item xs={12} md={3} key={value}>
@@ -850,68 +919,10 @@ for (const key of Object.keys(groupedTasks)) {
               </Paper>
             </Grid>
           ))}
-        </Grid>
+        </Grid> </Box>
       </DragDropContext>  )} 
     
 
-      <Paper elevation={0} sx={{ p: 2, mb: 3, border: "1px solid", borderColor: "divider" }}>
-        <Grid container spacing={2} alignItems="center">
-          <Grid item xs={12} md={6}>
-            <TextField
-              fullWidth
-              placeholder="Search tasks..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                ),
-              }}
-              size="small"
-            />
-          </Grid>
-          <Grid item xs={6} md={3}>
-            <TextField
-              select
-              fullWidth
-              label="Filter by Status"
-              value={filterStatus || ""}
-              onChange={(e) => setFilterStatus(e.target.value || null)}
-              size="small"
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <FilterList fontSize="small" />
-                  </InputAdornment>
-                ),
-              }}
-            >
-              <MenuItem value="">All Statuses</MenuItem>
-              {STATUS_OPTIONS.map((option) => (
-                <MenuItem key={option.value} value={option.value}>
-                  <Box sx={{ display: "flex", alignItems: "center" }}>
-                    {React.cloneElement(option.icon, { sx: { mr: 1 } })}
-                    {option.label}
-                  </Box>
-                </MenuItem>
-              ))}
-            </TextField>
-          </Grid>
-          <Grid item xs={6} md={3} sx={{ display: "flex", justifyContent: "flex-end" }}>
-            <CustomButton
-              variant="contained"
-              startIcon={<Add />}
-              onClick={() => setOpenModal(true)}
-              disabled={!selectedProjectId}
-              fullWidth={isMobile}
-            >
-              New Task
-            </CustomButton>
-          </Grid>
-        </Grid>
-      </Paper>  
 
       {isError && (
         <Alert severity="error" sx={{ mb: 3 }}>
@@ -958,9 +969,24 @@ for (const key of Object.keys(groupedTasks)) {
                   : "Select a project to view tasks"}
               </Typography>
               {selectedProjectId && !searchQuery && !filterStatus && (
-                <CustomButton variant="contained" startIcon={<Add />} onClick={() => setOpenModal(true)} sx={{ mt: 3 }}>
-                  New Task
-                </CustomButton>
+               // In the TaskPage component, modify the New Task button onClick handler:
+<CustomButton
+  variant="contained"
+  startIcon={<Add />}
+  onClick={() => {
+    if (currentUser?.role === 'team_member') {
+      setCurrentTask(prev => ({
+        ...prev,
+        assignedTo: currentUser._id,
+      }));
+    }
+    setOpenModal(true);
+  }}
+  disabled={!selectedProjectId}
+  fullWidth={isMobile}
+>
+  New Task
+</CustomButton>
               )}
             </Box>
           ) : (
@@ -971,6 +997,8 @@ for (const key of Object.keys(groupedTasks)) {
                     <TableCell>Task Name</TableCell>
                     <TableCell>Description</TableCell>
                     <TableCell>Dates</TableCell>
+                    <TableCell>Work Hours</TableCell>
+                    <TableCell>Actual Hours</TableCell>
                     <TableCell>Assigned To</TableCell>
                     <TableCell>Priority</TableCell>
                     <TableCell>Status</TableCell>
@@ -1002,6 +1030,15 @@ for (const key of Object.keys(groupedTasks)) {
                           </Box>
                         </Box>
                       </TableCell>
+                      <TableCell>{task.workingHours}h</TableCell>
+<TableCell>
+  {task.actualWorkedHours}h
+  {task.completedAt && (
+    <Typography variant="caption" display="block" color="text.secondary">
+      Completed: {safeFormatDate(task.completedAt, 'MMM d')}
+    </Typography>
+  )}
+</TableCell>
                       <TableCell>
                         <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                           {typeof task.assignedTo === "string"

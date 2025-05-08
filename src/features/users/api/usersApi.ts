@@ -35,12 +35,36 @@ export const usersApi = createApi({
           method: 'DELETE',
         }),
         invalidatesTags: (result, error, { userId }) => [{ type: 'User', id: userId }]
+      }), 
+      updateUser: builder.mutation<User, { id: string; data: Partial<User> }>({
+        query: ({ id, data }) => ({
+          url: `/${id}`,
+          method: 'PUT',
+          body: data,
+        }),
+        invalidatesTags: ['User'],
       }),
-  }),
+      confirmCvData: builder.mutation<User, { 
+        userId: string; 
+        data: { 
+          skillIds: string[];
+          educations: any[];
+          certifications: any[];
+        }
+      }>({
+        query: ({ userId, data }) => ({
+          url: `/${userId}/confirm-cv-data2`,
+          method: 'POST',
+          body: data
+        }),
+        invalidatesTags: (result, error, { userId }) => [{ type: 'User', id: userId }]
+      })
+    }),
+
 });
 
-export const { 
+export const { useConfirmCvDataMutation,
   useGetUsersQuery,
   useGetUserQuery,
-  useAssignSkillMutation,  useRemoveSkillMutation
+  useAssignSkillMutation,  useRemoveSkillMutation,useUpdateUserMutation
 } = usersApi;

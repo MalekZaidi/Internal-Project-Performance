@@ -17,17 +17,16 @@ export const taskApi = createApi({
   }),
   tagTypes: ['Task'],
   endpoints: (builder) => ({
-   // Update the getTasks endpoint to include projectId as a query parameter
-getTasks: builder.query<Task[], string | null>({
-  query: (projectId) => ({
-    url: `/getall`,
-    params: { projectId: projectId || undefined }
-  }),
-  providesTags: (result) =>
-    result
-      ? [...result.map(({ _id }) => ({ type: 'Task' as const, _id })), 'Task']
-      : ['Task'],
-}),
+    getTasks: builder.query<Task[], string | null>({
+      query: (projectId) => ({
+        url: `/getall/${projectId}`,
+        params: { projectId }
+      }),
+      providesTags: (result) =>
+        result
+          ? [...result.map(({ _id }) => ({ type: 'Task' as const, _id })), 'Task']
+          : ['Task'],
+    }),
     createTask: builder.mutation<Task, CreateTaskPayload>({
       query: (newTask) => ({
         url: '/',
